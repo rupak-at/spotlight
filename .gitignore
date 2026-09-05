@@ -1,0 +1,9 @@
+node_modules/
+dist/
+target/
+.local/
+src-tauri/gen/
+*.log
+.env
+.env.*
+!.env.example
