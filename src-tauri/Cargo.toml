@@ -1,0 +1,19 @@
+[package]
+name = "spotlight"
+version = "0.1.0"
+edition = "2021"
+description = "A fast, customizable desktop launcher for Ubuntu"
+authors = ["Spotlight contributors"]
+default-run = "spotlight"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+spotlight-core = { path = "../crates/spotlight-core" }
+tauri = { version = "2", features = [] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+gio = "0.18"
+notify = "8"
