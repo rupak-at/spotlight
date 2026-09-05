@@ -1,0 +1,9 @@
+node_modules/
+target/
+dist/
+.local/
+.playwright-mcp/
+src-tauri/gen/
+src-tauri/icons/
+package-lock.json
+Cargo.lock

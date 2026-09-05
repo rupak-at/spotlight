@@ -2,6 +2,10 @@
 
 After every completed logical change, run the relevant checks, then stage and commit the relevant files. Do not leave completed project changes uncommitted at handoff.
 
+Run `npm run format` and `npm run lint` before staging. Git's pre-commit hook also formats staged files with Prettier/rustfmt and fixes/checks staged JavaScript/TypeScript with ESLint. Keep the hook enabled; fix failures before committing. CI verifies formatting and linting independently.
+
+Keep `README.md` and the relevant guides in `docs/` synchronized with every change to installation, development commands, packaging, settings, shortcuts, architecture, or user behavior. Document the actual implemented flow and verify commands against package scripts; do not leave outdated instructions for a later task.
+
 Use these commands, replacing the paths and message with the actual change:
 
 ```sh

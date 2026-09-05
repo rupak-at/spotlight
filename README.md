@@ -65,15 +65,15 @@ Open settings with the sliders button or Ctrl+,. Search roots use absolute paths
 
 Settings live in `$XDG_CONFIG_HOME/io.github.rupak.spotlight/settings.json` (normally `~/.config/...`). The disposable SQLite cache lives in `$XDG_CACHE_HOME/io.github.rupak.spotlight/index.sqlite3` (normally `~/.cache/...`). Stop the app before editing settings manually or removing a cache. Changes saved through the UI apply immediately.
 
-| Change | Start here |
-| --- | --- |
-| Colors, spacing, typography | `src/styles.css` |
-| Results and keyboard behavior | `src/App.tsx`, `src/useSearch.ts` |
-| Settings UI | `src/SettingsPanel.tsx` |
-| Search ranking | `crates/spotlight-core/src/search.rs` |
-| Traversal/exclusions | `crates/spotlight-core/src/files.rs` |
-| Desktop behavior and launching | `src-tauri/src/main.rs`, `src-tauri/src/linux.rs` |
-| Background indexing and watching | `src-tauri/src/worker.rs` |
+| Change                           | Start here                                        |
+| -------------------------------- | ------------------------------------------------- |
+| Colors, spacing, typography      | `src/styles.css`                                  |
+| Results and keyboard behavior    | `src/App.tsx`, `src/useSearch.ts`                 |
+| Settings UI                      | `src/SettingsPanel.tsx`                           |
+| Search ranking                   | `crates/spotlight-core/src/search.rs`             |
+| Traversal/exclusions             | `crates/spotlight-core/src/files.rs`              |
+| Desktop behavior and launching   | `src-tauri/src/main.rs`, `src-tauri/src/linux.rs` |
+| Background indexing and watching | `src-tauri/src/worker.rs`                         |
 
 ## Checks
 

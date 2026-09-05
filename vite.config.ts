@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 1420, strictPort: true, watch: { ignored: ['**/src-tauri/**', '**/crates/**', '**/target/**'] } },
+  server: {
+    port: 1420,
+    strictPort: true,
+    watch: { ignored: ['**/src-tauri/**', '**/crates/**', '**/target/**'] },
+  },
   clearScreen: false,
   test: { environment: 'jsdom', globals: true, restoreMocks: true },
 });

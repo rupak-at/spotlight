@@ -19,11 +19,11 @@ flowchart TB
   GNOME[GNOME shortcut / single instance] --> HOST
 ```
 
-| Location | Responsibility | Must not own |
-| --- | --- | --- |
-| `crates/spotlight-core` | Models, validated configuration, file traversal, ranking, persistence | Windows, React, arbitrary command execution |
-| `src-tauri/src` | Application lifecycle, IPC commands, Linux adapters, worker orchestration | UI presentation |
-| `src` | Search state, keyboard interaction, results, settings, theme | Filesystem traversal, desktop executable parsing |
+| Location                | Responsibility                                                            | Must not own                                     |
+| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| `crates/spotlight-core` | Models, validated configuration, file traversal, ranking, persistence     | Windows, React, arbitrary command execution      |
+| `src-tauri/src`         | Application lifecycle, IPC commands, Linux adapters, worker orchestration | UI presentation                                  |
+| `src`                   | Search state, keyboard interaction, results, settings, theme              | Filesystem traversal, desktop executable parsing |
 
 The core does not depend on Tauri or a running display server. It can be reused by a future CLI and tested independently. Application discovery and launch use Linux GIO so desktop-entry quoting, Flatpak/Snap integration, and terminal applications follow desktop behavior.
 

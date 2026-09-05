@@ -9,13 +9,22 @@ export function useSearch(query: string, filter: Filter, revision: number) {
   useEffect(() => {
     let active = true;
     const timer = setTimeout(() => {
-      void api.search(query, filter).then(data => {
-        if (active) { setReply({ key, data }); setFailure(undefined); }
-      }).catch(error => {
-        if (active) setFailure({ key, message: String(error) });
-      });
+      void api
+        .search(query, filter)
+        .then((data) => {
+          if (active) {
+            setReply({ key, data });
+            setFailure(undefined);
+          }
+        })
+        .catch((error) => {
+          if (active) setFailure({ key, message: String(error) });
+        });
     }, 45);
-    return () => { active = false; clearTimeout(timer); };
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [query, filter, revision, key]);
   return {
     data: reply?.key === key ? reply.data : undefined,
