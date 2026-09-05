@@ -1,6 +1,7 @@
 use serde::Serialize;
 use spotlight_core::{config::Settings, search::Index};
 use std::{
+    collections::HashMap,
     path::PathBuf,
     sync::{
         atomic::{AtomicBool, AtomicU64},
@@ -24,6 +25,7 @@ pub struct Status {
 }
 
 pub struct AppState {
+    pub icons: Mutex<HashMap<String, Option<String>>>,
     pub index: RwLock<Arc<Index>>,
     pub settings: RwLock<Settings>,
     pub status: Mutex<Status>,

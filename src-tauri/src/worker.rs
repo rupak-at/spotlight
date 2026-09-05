@@ -114,6 +114,7 @@ pub fn start(app: AppHandle, receiver: Receiver<()>) {
             }
             let total = entries.len();
             *state.index.write().unwrap() = Arc::new(Index::new(entries));
+            state.icons.lock().unwrap().clear();
             {
                 let mut status = state.status.lock().unwrap();
                 status.indexing = false;

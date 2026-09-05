@@ -4,8 +4,9 @@ import { api } from './api';
 
 afterEach(cleanup);
 
-it('navigates results with arrows, launches the selected ID, and clears search on Escape', async () => {
+it('navigates results, launches the selected ID, and hides on Escape with a query', async () => {
   const launch = vi.spyOn(api, 'launch').mockResolvedValue();
+  const hide = vi.spyOn(api, 'hide').mockResolvedValue();
   render(<App />);
   const input = screen.getByRole('combobox');
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(7));
@@ -18,16 +19,19 @@ it('navigates results with arrows, launches the selected ID, and clears search o
   expect(launch).toHaveBeenCalledTimes(1);
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(1));
   fireEvent.keyDown(input, { key: 'Escape' });
-  expect((input as HTMLInputElement).value).toBe('');
+  expect(hide).toHaveBeenCalledTimes(1);
 });
 
 it('filters files and opens settings from the keyboard', async () => {
+  const hide = vi.spyOn(api, 'hide').mockResolvedValue();
   render(<App />);
   fireEvent.click(screen.getByRole('button', { name: 'Files' }));
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(1));
   expect(screen.getByText('architecture.md')).toBeTruthy();
   fireEvent.keyDown(screen.getByRole('combobox'), { key: ',', ctrlKey: true });
-  expect(screen.getByRole('heading', { name: 'Make it yours' })).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+  fireEvent.keyDown(screen.getByLabelText('Accent color'), { key: 'Escape' });
+  expect(hide).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole('button', { name: 'Back to search' }));
   expect(screen.getByRole('combobox')).toBeTruthy();
 });

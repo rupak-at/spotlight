@@ -1,7 +1,9 @@
+mod icons;
 mod linux;
 mod state;
 mod worker;
 
+use gtk::prelude::*;
 use spotlight_core::{
     config::{self, Settings},
     model::{Kind, SearchResponse},
@@ -10,6 +12,7 @@ use spotlight_core::{
 };
 use state::{AppState, Status};
 use std::{
+    collections::HashMap,
     str::FromStr,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
@@ -24,10 +27,22 @@ fn toggle(app: &tauri::AppHandle) {
         if window.is_visible().unwrap_or(false) && window.is_focused().unwrap_or(false) {
             let _ = window.hide();
         } else {
-            let _ = window.show();
-            let _ = window.unminimize();
-            let _ = window.set_focus();
-            let _ = window.emit("launcher-shown", ());
+            // Map before focusing: Tao's queued show request can otherwise leave
+            // the window hidden when its following focus request is checked.
+            let _ = app.run_on_main_thread(move || {
+                if let Ok(native) = window.gtk_window() {
+                    native.show_all();
+                    native.deiconify();
+                    let timestamp = native
+                        .window()
+                        .and_then(|window| window.downcast::<gdkx11::X11Window>().ok())
+                        .map(|window| gdkx11::functions::x11_get_server_time(&window))
+                        .unwrap_or(0);
+                    native.present_with_time(timestamp);
+                }
+                let _ = window.set_focus();
+                let _ = window.emit("launcher-shown", ());
+            });
         }
     }
 }
@@ -75,6 +90,21 @@ fn get_settings(state: tauri::State<AppState>) -> Settings {
 #[tauri::command]
 fn get_status(state: tauri::State<AppState>) -> Status {
     state.status.lock().unwrap().clone()
+}
+
+#[tauri::command]
+fn get_icon(state: tauri::State<AppState>, id: String) -> Option<String> {
+    let entry = state.index.read().unwrap().get(&id).cloned()?;
+    let mut cache = state.icons.lock().unwrap();
+    if let Some(icon) = cache.get(&id) {
+        return icon.clone();
+    }
+    let icon = icons::resolve(&entry);
+    if cache.len() >= 256 {
+        cache.clear();
+    }
+    cache.insert(id, icon.clone());
+    icon
 }
 
 #[tauri::command]
@@ -148,6 +178,7 @@ fn main() {
             let session = std::env::var("XDG_SESSION_TYPE").unwrap_or_else(|_| "unknown".into());
             let wayland = session == "wayland" || std::env::var_os("WAYLAND_DISPLAY").is_some();
             app.manage(AppState {
+                icons: Mutex::new(HashMap::new()),
                 index: RwLock::new(Arc::new(Index::default())), settings: RwLock::new(settings.clone()),
                 status: Mutex::new(Status { indexing: true, session, warnings, ..Status::default() }),
                 revision: AtomicU64::new(0), shortcut_ready: AtomicBool::new(false), refresh: sender.clone(), config_path, cache_path,
@@ -170,7 +201,7 @@ fn main() {
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event { api.prevent_close(); let _ = window.hide(); }
         })
-        .invoke_handler(tauri::generate_handler![search, get_settings, get_status, save_settings, refresh_index, launch, hide_window, quit])
+        .invoke_handler(tauri::generate_handler![search, get_settings, get_status, get_icon, save_settings, refresh_index, launch, hide_window, quit])
         .run(tauri::generate_context!())
         .expect("Could not start Spotlight. Run from a terminal to inspect desktop or WebKitGTK errors.");
 }

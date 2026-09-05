@@ -27,6 +27,8 @@ flowchart TB
 
 The core does not depend on Tauri or a running display server. It can be reused by a future CLI and tested independently. Application discovery and launch use Linux GIO so desktop-entry quoting, Flatpak/Snap integration, and terminal applications follow desktop behavior.
 
+The desktop icon adapter resolves GIO application/MIME icons through GTK's active icon theme. Only visible results request icons. A bounded cache holds up to 256 rendered 64-pixel PNGs; the frontend gets data URIs, with no filesystem capability. File MIME guesses use the filename without reading file contents. Missing icons use type-specific frontend fallbacks.
+
 ## Search and indexing
 
 Index selected roots in a worker, skipping hidden/build/dependency directories by default. Do not follow symlinks. Deduplicate overlapping roots. Cap traversal depth and indexed entries, and expose truncation and read errors rather than silently claiming complete coverage.

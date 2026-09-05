@@ -4,21 +4,25 @@ A keyboard-first desktop launcher inspired by macOS Spotlight. Built for Ubuntu 
 
 The Rust engine owns file discovery, ranking, and the SQLite index. The desktop host owns GNOME integration and launching. React owns presentation and interaction. See [the architecture](docs/architecture.md) for boundaries, data flow, and production hardening.
 
+**Guides:** [Install from a release or Git clone](docs/installation.md) · [Use Spotlight](docs/usage.md) · [Develop locally](docs/development.md) · [Architecture](docs/architecture.md) · [Verification](docs/verification.md).
+
 ## What works
 
 - Installed application discovery through GIO, including desktop entries exported by Snap and Flatpak.
 - Case-insensitive filename/folder search with exact, prefix, substring, and subsequence ranking.
-- Arrow-key navigation, Enter to open, Escape to clear/hide, Ctrl+, for settings, and Ctrl+Tab for result filters.
+- Arrow-key navigation, Enter to open, Escape to hide immediately, Ctrl+, for settings, and Ctrl+Tab for result filters.
 - A single resident process with an X11 global shortcut and a `--toggle` entry point for GNOME shortcuts.
 - Background indexing, a transactional SQLite cache, and coalesced filesystem change notifications.
 - Dark/light/system appearance, accent color, compact results, search roots, exclusions, limits, and shortcut customization.
+- A compact 680×460 launcher with system application icons and file-type icons from Ubuntu's theme. Icons load only for displayed results, with type-specific fallbacks.
+- Neutral charcoal dark mode, a monochrome app icon, and adjustable translucent background (94% opaque by default) without glow effects.
 - Explicit errors and notices for shortcut conflicts, unavailable folders, and incomplete indexing.
 
 This is a working first version with production-oriented boundaries. See [architecture and release gates](docs/architecture.md) and [verification](docs/verification.md) for its current limits.
 
 ## Run on Ubuntu
 
-Use Node.js 22+ and Rust 1.94+ with Cargo. Install Tauri's native prerequisites if missing:
+Use Node.js 22.22.1+ and Rust 1.94+ with Cargo. Install Tauri's native prerequisites if missing:
 
 ```sh
 sudo apt update
@@ -79,6 +83,8 @@ Settings live in `$XDG_CONFIG_HOME/io.github.rupak.spotlight/settings.json` (nor
 
 ```sh
 npm test
+npm run lint
+npm run format:check
 npm run build
 cargo fmt --all -- --check
 cargo test --workspace --locked
@@ -93,6 +99,8 @@ Live updates currently rebuild the bounded snapshot after relevant changes; they
 ## Development workflow
 
 Keep changes focused and commit every completed, verified logical change with a descriptive conventional commit message. Never commit generated builds, dependencies, or local search data.
+
+`npm ci` enables a pre-commit hook that formats staged files with Prettier/rustfmt and checks staged TypeScript/JavaScript with ESLint. Use `npm run format` before staging. Update the relevant guides whenever the implementation or workflow changes; see [AGENTS.md](AGENTS.md).
 
 ## Why this stack
 

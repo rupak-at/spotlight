@@ -18,6 +18,7 @@ pub struct Settings {
     pub theme: String,
     pub accent: String,
     pub compact: bool,
+    pub background_opacity: u8,
 }
 
 impl Default for Settings {
@@ -50,8 +51,9 @@ impl Default for Settings {
             result_limit: 30,
             shortcut: "Super+Space".into(),
             theme: "dark".into(),
-            accent: "#a5b4fc".into(),
-            compact: false,
+            accent: "#c1c5cf".into(),
+            compact: true,
+            background_opacity: 94,
         }
     }
 }
@@ -62,6 +64,9 @@ impl Settings {
     }
 
     fn validate_inner(&self, require_available_roots: bool) -> Result<()> {
+        if !(80..=100).contains(&self.background_opacity) {
+            return Err("Background opacity must be between 80 and 100 percent.".into());
+        }
         if !(1..=100).contains(&self.result_limit) {
             return Err("Result limit must be between 1 and 100.".into());
         }

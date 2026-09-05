@@ -49,8 +49,8 @@ export function SettingsPanel({
           <ArrowLeft size={19} />
         </button>
         <div>
-          <h1>Make it yours</h1>
-          <p>A little more personal. Just as fast.</p>
+          <h1>Settings</h1>
+          <p>Appearance, shortcuts, and search.</p>
         </div>
       </header>
       <nav className="settings-tabs" aria-label="Settings sections">
@@ -99,6 +99,23 @@ export function SettingsPanel({
                 value={draft.accent}
                 onChange={(e) => update('accent', e.target.value)}
               />
+            </div>
+            <div className="setting-row">
+              <div>
+                <label htmlFor="background-opacity">Background opacity</label>
+                <p>Subtle glass. Text and icons stay solid.</p>
+              </div>
+              <div className="opacity-control">
+                <input
+                  id="background-opacity"
+                  type="range"
+                  min="80"
+                  max="100"
+                  value={draft.background_opacity}
+                  onChange={(e) => update('background_opacity', Number(e.target.value))}
+                />
+                <output htmlFor="background-opacity">{draft.background_opacity}%</output>
+              </div>
             </div>
             <div className="setting-row">
               <div>

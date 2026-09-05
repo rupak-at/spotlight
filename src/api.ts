@@ -12,8 +12,9 @@ const previewSettings: Settings = {
   result_limit: 30,
   shortcut: 'Super+Space',
   theme: 'dark',
-  accent: '#a5b4fc',
-  compact: false,
+  accent: '#c1c5cf',
+  compact: true,
+  background_opacity: 94,
 };
 // Browser preview is deliberately separate from the native API and labeled in the UI.
 const samples: Entry[] = [
@@ -57,6 +58,8 @@ const samples: Entry[] = [
 ];
 let currentPreviewSettings = { ...previewSettings };
 export const api = {
+  icon: (id: string) =>
+    desktop ? invoke<string | null>('get_icon', { id }) : Promise.resolve(null),
   settings: () =>
     desktop ? invoke<Settings>('get_settings') : Promise.resolve(currentPreviewSettings),
   status: () =>

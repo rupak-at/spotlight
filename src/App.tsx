@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  AppWindow,
   ArrowDown,
   ArrowUp,
   Command,
   CornerDownLeft,
-  FileText,
-  Folder,
   Search,
   Settings2,
-  Sparkles,
   X,
   RefreshCw,
   Power,
@@ -19,6 +15,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { api, desktop } from './api';
 import { useSearch } from './useSearch';
 import { SettingsPanel } from './SettingsPanel';
+import { ResultIcon } from './ResultIcon';
 import type { Entry, Filter, Settings, Status } from './types';
 
 const filters: { key: Filter; label: string }[] = [
@@ -107,7 +104,11 @@ export function App() {
   }, [selected]);
   useEffect(() => {
     document.documentElement.dataset.theme = settings?.theme ?? 'dark';
-    document.documentElement.style.setProperty('--accent', settings?.accent ?? '#a5b4fc');
+    document.documentElement.style.setProperty('--accent', settings?.accent ?? '#c1c5cf');
+    document.documentElement.style.setProperty(
+      '--background-opacity',
+      `${settings?.background_opacity ?? 94}%`,
+    );
   }, [settings]);
   useEffect(() => {
     if (!showSettings) input.current?.focus();
@@ -134,9 +135,7 @@ export function App() {
     if (event.nativeEvent.isComposing) return;
     if (event.key === 'Escape') {
       event.preventDefault();
-      if (showSettings) setShowSettings(false);
-      else if (query) setQuery('');
-      else safely(api.hide());
+      safely(api.hide());
       return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key === ',') {
@@ -166,7 +165,10 @@ export function App() {
   ];
 
   return (
-    <main className={`launcher ${settings?.compact ? 'compact' : ''}`} onKeyDown={keyDown}>
+    <main
+      className={`launcher ${settings?.compact !== false ? 'compact' : ''}`}
+      onKeyDown={keyDown}
+    >
       <div
         className="titlebar"
         onMouseDown={(event) => {
@@ -174,16 +176,8 @@ export function App() {
             safely(getCurrentWindow().startDragging());
         }}
       >
-        <span className="wordmark">
-          <Sparkles size={14} strokeWidth={1.8} /> spotlight{' '}
-          <span className="wordmark-divider">/</span>
-          <span className="wordmark-caption">a shortcut to everything</span>
-        </span>
+        <span className="wordmark">Spotlight</span>
         <div className="window-actions">
-          <span className="local-badge">
-            <span />
-            {desktop ? 'On your device' : 'Browser preview'}
-          </span>
           <button
             className="icon-button"
             aria-label="Hide Spotlight"
@@ -216,7 +210,7 @@ export function App() {
               aria-expanded={true}
               aria-activedescendant={active ? `result-${selected}` : undefined}
               aria-autocomplete="list"
-              placeholder="Where do you want to go?"
+              placeholder="Search anything"
               value={query}
               maxLength={256}
               spellCheck={false}
@@ -227,9 +221,6 @@ export function App() {
                 setError('');
               }}
             />
-            <kbd className="escape-key" onClick={() => safely(api.hide())}>
-              esc
-            </kbd>
           </div>
           <div className="filter-row">
             <nav aria-label="Result types">
@@ -247,7 +238,6 @@ export function App() {
                 </button>
               ))}
             </nav>
-            <span className="filter-hint">ctrl + tab</span>
           </div>
           {warnings.length > 0 && (
             <details className="notice">
@@ -269,13 +259,7 @@ export function App() {
             </div>
           )}
           <div className="results-heading">
-            <span>
-              {query
-                ? 'SEARCH RESULTS'
-                : filter === 'all' || filter === 'app'
-                  ? 'READY WHEN YOU ARE'
-                  : 'YOUR ' + filter.toUpperCase() + 'S'}
-            </span>
+            <span>{query ? 'Results' : 'Suggestions'}</span>
             <span>
               {pending
                 ? 'Searching…'
@@ -290,8 +274,6 @@ export function App() {
             aria-busy={pending}
           >
             {results.map((entry, i) => {
-              const Icon =
-                entry.kind === 'app' ? AppWindow : entry.kind === 'folder' ? Folder : FileText;
               return (
                 <div
                   id={`result-${i}`}
@@ -302,9 +284,7 @@ export function App() {
                   onMouseMove={() => setSelected(i)}
                   onClick={() => void launch(entry)}
                 >
-                  <span className={`result-icon ${entry.kind}`}>
-                    <Icon size={21} strokeWidth={1.65} />
-                  </span>
+                  <ResultIcon entry={entry} revision={revision} />
                   <div className="result-text">
                     <span className="result-name">{entry.name}</span>
                     <span className="result-path" title={entry.path}>
@@ -323,12 +303,12 @@ export function App() {
                 </span>
                 <h2>
                   {pending
-                    ? 'Finding your next stop…'
+                    ? 'Searching…'
                     : status?.indexing
-                      ? 'Getting to know your files'
+                      ? 'Indexing your files'
                       : query
-                        ? 'Nothing here just yet'
-                        : 'A fresh start'}
+                        ? 'No results'
+                        : 'Ready to search'}
                 </h2>
                 <p>
                   {pending
@@ -341,16 +321,6 @@ export function App() {
                 </p>
               </div>
             )}
-          </div>
-          <div className="selection-context">
-            <span>
-              {active
-                ? active.kind === 'app'
-                  ? 'Launch application'
-                  : `Open ${active.kind}`
-                : 'Your next destination is a few keystrokes away.'}
-            </span>
-            {data && query && <span>{data.elapsed_ms.toFixed(1)} ms</span>}
           </div>
           <footer className="launcher-footer">
             <div className="key-hints">
@@ -373,7 +343,7 @@ export function App() {
             <div className="footer-actions">
               <span className="index-status" aria-live="polite">
                 <span className={status?.indexing ? 'status-dot indexing' : 'status-dot'} />
-                {status?.indexing ? 'Indexing' : `${(status?.total ?? 0).toLocaleString()} indexed`}
+                {status?.indexing ? 'Indexing…' : ''}
               </span>
               <button
                 className="icon-button"

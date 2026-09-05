@@ -16,4 +16,7 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 gio = "0.18"
+gtk = "0.18"
+gdkx11 = "0.18"
+base64 = "0.22"
 notify = "8"

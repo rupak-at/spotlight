@@ -23,6 +23,7 @@ export interface Settings {
   theme: 'dark' | 'light' | 'system';
   accent: string;
   compact: boolean;
+  background_opacity: number;
 }
 export interface Status {
   indexing: boolean;

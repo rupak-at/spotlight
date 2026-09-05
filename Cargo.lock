@@ -3350,7 +3350,10 @@ dependencies = [
 name = "spotlight"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
+ "gdkx11",
  "gio",
+ "gtk",
  "notify",
  "serde",
  "spotlight-core",
