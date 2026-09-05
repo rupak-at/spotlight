@@ -43,7 +43,7 @@ Choose checks relevant to the change; the list above is the complete verificatio
 `npm ci` runs the `prepare` script to enable Husky. Each commit runs lint-staged:
 
 - JavaScript/TypeScript: Prettier, then ESLint fixes/checks.
-- JSON, CSS, Markdown, YAML, HTML, and supported SVG input: Prettier.
+- JSON, CSS, Markdown, YAML, and HTML: Prettier. Unsupported formats are skipped.
 - Rust: rustfmt on staged files, with child-module recursion disabled so unrelated files are not changed.
 
 lint-staged stages the formatting results and protects partially staged work with a backup. A failed formatter/linter stops the commit; fix the reported problem and commit again. Tests are explicit commands and CI checks, not hidden long-running pre-commit steps. Keep the hook enabled. If a checkout has no hook configured, run `npm run prepare` inside the repository.
@@ -89,6 +89,18 @@ The benchmark reports synthetic in-memory search latency for 50,000 entries. It 
 The package command builds `target/release/spotlight` and a `.deb` under `target/release/bundle/deb/`. Use the native binary or package to check the final assets; browser hot reload alone does not verify the release build.
 
 For a release, keep the application version in `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` aligned and refresh the affected lockfiles. Update package filenames in installation instructions. Attach the tested `.deb` to the GitHub Release manually; this repository's CI currently performs checks and does not publish artifacts or releases.
+
+## Update the application icon
+
+Edit the source at `assets/icon.svg`, then regenerate the four Linux icon sizes:
+
+```sh
+npm run tauri -- icon assets/icon.svg -o /tmp/spotlight-icons
+cp /tmp/spotlight-icons/32x32.png /tmp/spotlight-icons/128x128.png \
+  /tmp/spotlight-icons/128x128@2x.png /tmp/spotlight-icons/icon.png src-tauri/icons/
+```
+
+Rebuild the package to include the new icons. Commit the SVG and these PNG files together; other platforms' generated icons are not needed for this Ubuntu app.
 
 ## Documentation is part of a change
 

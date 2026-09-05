@@ -17,7 +17,7 @@ You can also open **Spotlight** from Ubuntu's application menu. Package installa
 
 ## Build after cloning the repository
 
-Replace `<repository-url>` with this project's Git URL. A remote has not been configured in this checkout, so no repository address is assumed here.
+Replace `<repository-url>` with the repository's Git clone URL from GitHub.
 
 ```sh
 git clone <repository-url> spotlight

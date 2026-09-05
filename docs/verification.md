@@ -4,16 +4,40 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 
 ## Completed
 
-- Core tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, and SQLite rollback.
-- Four frontend tests covering stale asynchronous replies, errors, keyboard navigation, launching the selected ID, filtering, and opening settings.
+- Eight Rust tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, and SQLite rollback. The full linked workspace test command passes.
+- Four frontend tests covering stale asynchronous replies, errors, keyboard navigation, launching the selected ID, filtering, and immediate Escape dismissal from both search and settings.
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
-- Browser interaction checks at 760×560 and 560×460: search, filters, themes, exclusion editing, settings save, and no horizontal overflow.
+- Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
+- Browser interaction checks at 680×460 and the 520×400 minimum: search, filters, themes, exclusion editing, background opacity, settings save, and no horizontal overflow.
 - Release compilation and creation of `target/release/bundle/deb/Spotlight_0.1.0_amd64.deb`.
 
-## Runtime validation in progress
+## Native runtime checks
 
-Native smoke tests, the full linked workspace test run, and release-mode search measurements are being completed. A sandboxed GUI launch cannot access the display; native verification requires the desktop session.
+The release binary was run inside the Ubuntu X11 desktop using isolated XDG config/cache directories and a temporary search folder. Checks confirmed:
+
+- Real installed application discovery and filename/folder search through Rust IPC.
+- Native themed application and folder icons, compact layout, transparent background, and a 680×460 window.
+- Automatic SQLite index updates when a fixture file was created and deleted.
+- The configured `Ctrl+Alt+Space` shortcut showing and focusing the launcher, including reopening a hidden window.
+- Escape hiding the native launcher immediately while a query was present.
+- Enter opening the temporary fixture folder in Files and launching Calculator through GIO; Spotlight hid after successful opening.
+
+Super+Space itself was not reassigned on the host, because GNOME reserves it for input-source switching. Follow [installation](installation.md) to configure it. `.deb` contents were inspected for the executable, desktop entry, icons, and runtime dependencies; installation on a clean machine remains untested.
+
+## Search measurements
+
+Command: `cargo run --release -p spotlight-core --example benchmark`.
+
+| Measurement                             | Result   |
+| --------------------------------------- | -------- |
+| Synthetic entries                       | 50,000   |
+| Index construction                      | 10.66 ms |
+| Warm query median, 100 measured queries | 2.06 ms  |
+| Warm query p95                          | 3.25 ms  |
+| Maximum measured warm query             | 3.42 ms  |
+
+The query mix includes exact/prefix, subsequence, substring, multiple tokens, no matches, and empty queries. These are local engine measurements, not end-to-end performance guarantees. IPC, rendering, window activation, disk indexing, idle process memory, and battery use need separate measurement.
 
 ## Limits
 
