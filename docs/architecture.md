@@ -33,7 +33,7 @@ Index selected roots in a worker, skipping hidden/build/dependency directories b
 
 Publish a complete immutable index through a short-held lock. Searches keep their own reference to the snapshot, so disk traversal never blocks a query. Normalize names once per index, rank exact/prefix/substring/subsequence matches, and return a bounded result list. File contents are not indexed.
 
-Keep a SQLite snapshot for warm starts. Replace cached rows in one transaction and associate them with the relevant settings. Ignore a cache from a different configuration. Refresh after startup and on explicit request; filesystem change monitoring is a separate adapter, not search logic.
+Keep a SQLite snapshot for warm starts. Replace cached rows in one transaction and associate them with the relevant settings. Ignore a cache from a different configuration. Refresh after startup, on explicit request, and after filesystem changes. Filesystem monitoring is a separate adapter, not search logic. A bounded channel coalesces changes; access-only events are ignored. Watch up to 8,192 discovered directories without recursively watching excluded dependency/build trees. The current worker rebuilds a bounded snapshot; true incremental updates remain future work.
 
 Serialize index jobs. Coalesce refresh requests; configuration revisions prevent an obsolete scan from publishing after the user changes roots. The frontend debounces queries and rejects late replies. Never launch an item from results belonging to an earlier query.
 

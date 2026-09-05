@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Spotlight
+Comment=Search applications, files, and folders
+Exec=/usr/bin/spotlight --background
+Icon=spotlight
+Terminal=false
+X-GNOME-Autostart-enabled=true
