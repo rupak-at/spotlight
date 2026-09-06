@@ -5,11 +5,11 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 ## Completed
 
 - Eight Rust tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, and SQLite rollback. The full linked workspace test command passes.
-- Five frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, keyboard navigation, launching the selected ID, filtering, and immediate Escape dismissal from both search and settings.
+- Five frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, initial and post-Settings input focus, keyboard navigation, launching the selected ID, filtering, and immediate Escape dismissal from both search and settings.
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
-- Browser interaction checks include the collapsed search-only surface at 96 px and a fractional-scale 77 CSS px, rapid query replacement, expanded results, dark/light themes, exclusion editing, background opacity, settings save, centered search controls, and no overflow.
+- Browser interaction checks include the collapsed command bar at 96 px and a fractional-scale 77 CSS px, grouped results and group switching, rapid query replacement, dark/light themes, Settings return focus, centered search controls, and no overflow.
 - Release compilation and creation of `target/release/bundle/deb/Spotlight_0.1.0_amd64.deb`.
 
 ## Native runtime checks

@@ -19,13 +19,13 @@ flowchart TB
   GNOME[GNOME shortcut / single instance] --> HOST
 ```
 
-| Location                | Responsibility                                                            | Must not own                                     |
-| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| `crates/spotlight-core` | Models, validated configuration, file traversal, ranking, persistence     | Windows, React, arbitrary command execution      |
-| `src-tauri/src`         | Application lifecycle, IPC commands, Linux adapters, worker orchestration | UI presentation                                  |
-| `src`                   | Search state, keyboard interaction, results, settings, theme              | Filesystem traversal, desktop executable parsing |
+| Location                | Responsibility                                                              | Must not own                                     |
+| ----------------------- | --------------------------------------------------------------------------- | ------------------------------------------------ |
+| `crates/spotlight-core` | Models, validated configuration, file traversal, ranking, persistence       | Windows, React, arbitrary command execution      |
+| `src-tauri/src`         | Application lifecycle, IPC commands, Linux adapters, worker orchestration   | UI presentation                                  |
+| `src`                   | Search state, focus, grouped results, keyboard interaction, settings, theme | Filesystem traversal, desktop executable parsing |
 
-The core does not depend on Tauri or a running display server. It can be reused by a future CLI and tested independently. Application discovery and launch use Linux GIO so desktop-entry quoting, Flatpak/Snap integration, and terminal applications follow desktop behavior.
+The core does not depend on Tauri or a running display server. It can be reused by a future CLI and tested independently. Application discovery and launch use Linux GIO so desktop-entry quoting, Flatpak/Snap integration, and terminal applications follow desktop behavior. The frontend restores search focus after window activation, shortcut reopening, result-group changes, and leaving Settings.
 
 The desktop icon adapter resolves GIO application/MIME icons through GTK's active icon theme. Only visible results request icons. A bounded cache holds up to 256 rendered 64-pixel PNGs; the frontend gets data URIs, with no filesystem capability. File MIME guesses use the filename without reading file contents. Missing icons use type-specific frontend fallbacks.
 

@@ -9,6 +9,7 @@ it('navigates results, launches the selected ID, and hides on Escape with a quer
   const hide = vi.spyOn(api, 'hide').mockResolvedValue();
   render(<App />);
   const input = screen.getByRole('combobox');
+  expect(document.activeElement).toBe(input);
   expect(screen.queryByRole('option')).toBeNull();
   fireEvent.change(input, { target: { value: 'fi' } });
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(2));
@@ -27,8 +28,11 @@ it('navigates results, launches the selected ID, and hides on Escape with a quer
 it('filters files and opens settings from the keyboard', async () => {
   const hide = vi.spyOn(api, 'hide').mockResolvedValue();
   render(<App />);
-  fireEvent.change(screen.getByRole('combobox'), { target: { value: 'architecture' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Files' }));
+  const input = screen.getByRole('combobox');
+  fireEvent.change(input, { target: { value: 'architecture' } });
+  await waitFor(() => expect(screen.getAllByRole('option').length).toBe(1));
+  fireEvent.keyDown(input, { key: 'Tab', ctrlKey: true });
+  fireEvent.keyDown(input, { key: 'Tab', ctrlKey: true });
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(1));
   expect(screen.getByText('architecture.md')).toBeTruthy();
   fireEvent.keyDown(screen.getByRole('combobox'), { key: ',', ctrlKey: true });
@@ -36,5 +40,5 @@ it('filters files and opens settings from the keyboard', async () => {
   fireEvent.keyDown(screen.getByLabelText('Accent color'), { key: 'Escape' });
   expect(hide).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole('button', { name: 'Back to search' }));
-  expect(screen.getByRole('combobox')).toBeTruthy();
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('combobox')));
 });

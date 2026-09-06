@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Power,
   CircleAlert,
+  ChevronRight,
 } from 'lucide-react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { api, desktop } from './api';
@@ -37,10 +38,29 @@ export function App() {
   const [error, setError] = useState('');
   const [launching, setLaunching] = useState(false);
   const launchingRef = useRef(false);
+  const focusTimer = useRef<number | undefined>(undefined);
   const input = useRef<HTMLInputElement>(null);
   const { data, pending, error: searchError } = useSearch(query, filter, revision);
   const results = data?.results ?? [];
-  const active = results[selected];
+  const remainingResults = results.slice(1);
+  const resultGroups = filters.slice(1).map((item) => ({
+    ...item,
+    entries: remainingResults.filter((entry) => entry.kind === item.key),
+  }));
+  const displayedResults =
+    filter === 'all'
+      ? [...(results[0] ? [results[0]] : []), ...resultGroups.flatMap((group) => group.entries)]
+      : results;
+  const positions = new Map(displayedResults.map((entry, index) => [entry.id, index]));
+  const active = displayedResults[selected];
+
+  function focusSearch() {
+    window.clearTimeout(focusTimer.current);
+    const focus = () => input.current?.focus({ preventScroll: true });
+    focus();
+    requestAnimationFrame(focus);
+    focusTimer.current = window.setTimeout(focus, 80);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -78,7 +98,7 @@ export function App() {
           setFilter('all');
           setError('');
           void api.resize(false).catch((error) => setError(String(error)));
-          requestAnimationFrame(() => input.current?.focus());
+          focusSearch();
         },
       ],
     ] as const) {
@@ -92,8 +112,22 @@ export function App() {
           if (alive) setError(String(error));
         });
     }
+    if (desktop) {
+      void getCurrentWindow()
+        .onFocusChanged(({ payload }) => {
+          if (payload) focusSearch();
+        })
+        .then((unlisten) => {
+          if (alive) cleanups.push(unlisten);
+          else unlisten();
+        })
+        .catch((error) => {
+          if (alive) setError(String(error));
+        });
+    }
     return () => {
       alive = false;
+      window.clearTimeout(focusTimer.current);
       cleanups.forEach((cleanup) => cleanup());
     };
   }, []);
@@ -113,7 +147,7 @@ export function App() {
     );
   }, [settings]);
   useEffect(() => {
-    if (!showSettings) input.current?.focus();
+    if (!showSettings) focusSearch();
   }, [showSettings]);
   const hasQuery = query.trim().length > 0;
   const expanded = showSettings || hasQuery;
@@ -153,9 +187,11 @@ export function App() {
     if (showSettings) return;
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      if (results.length)
+      if (displayedResults.length)
         setSelected(
-          (i) => (i + (event.key === 'ArrowDown' ? 1 : -1) + results.length) % results.length,
+          (i) =>
+            (i + (event.key === 'ArrowDown' ? 1 : -1) + displayedResults.length) %
+            displayedResults.length,
         );
     } else if (event.key === 'Enter' && event.target === input.current && active) {
       event.preventDefault();
@@ -170,6 +206,40 @@ export function App() {
     ...(status?.shortcut_message ? [status.shortcut_message] : []),
     ...(status?.warnings ?? []),
   ];
+  const shortcutLabel = (settings?.shortcut ?? 'Super+Space').replaceAll('+', '  ');
+
+  function resultRow(entry: Entry, featured = false) {
+    const index = positions.get(entry.id) ?? 0;
+    return (
+      <div
+        id={`result-${index}`}
+        key={entry.id}
+        role="option"
+        aria-selected={index === selected}
+        className={`result ${featured ? 'featured' : ''} ${index === selected ? 'selected' : ''}`}
+        onMouseMove={() => setSelected(index)}
+        onClick={() => void launch(entry)}
+      >
+        <ResultIcon entry={entry} revision={revision} />
+        <div className="result-text">
+          <span className="result-name">{entry.name}</span>
+          <span className="result-path" title={entry.path}>
+            {entry.kind === 'app' ? entry.keywords || entry.path : entry.path}
+          </span>
+        </div>
+        {index === selected ? (
+          <span className="result-action">
+            <kbd>
+              <CornerDownLeft size={12} />
+            </kbd>
+            Open
+          </span>
+        ) : (
+          <span className="result-kind">{kindLabels[entry.kind]}</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <main
@@ -227,7 +297,7 @@ export function App() {
               aria-expanded={hasQuery}
               aria-activedescendant={active ? `result-${selected}` : undefined}
               aria-autocomplete="list"
-              placeholder="Search anything"
+              placeholder="Search apps, files, and folders…"
               value={query}
               maxLength={256}
               spellCheck={false}
@@ -239,6 +309,8 @@ export function App() {
               }}
             />
             <div className="search-actions">
+              <kbd className="shortcut-pill">{shortcutLabel}</kbd>
+              <span className="search-divider" />
               {warnings.length > 0 && (
                 <span className="search-warning" title={warnings.join('\n')}>
                   <CircleAlert size={15} />
@@ -263,25 +335,6 @@ export function App() {
               </button>
             </div>
           </div>
-          {hasQuery && (
-            <div className="filter-row">
-              <nav aria-label="Result types">
-                {filters.map((item) => (
-                  <button
-                    key={item.key}
-                    aria-pressed={filter === item.key}
-                    onClick={() => {
-                      setFilter(item.key);
-                      input.current?.focus();
-                    }}
-                  >
-                    {item.label}
-                    {item.key === filter && <span className="filter-dot" />}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          )}
           {hasQuery && warnings.length > 0 && (
             <details className="notice">
               <summary>
@@ -302,16 +355,6 @@ export function App() {
             </div>
           )}
           {hasQuery && (
-            <div className="results-heading">
-              <span>{query ? 'Results' : 'Suggestions'}</span>
-              <span>
-                {pending && !data
-                  ? 'Searching…'
-                  : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
-              </span>
-            </div>
-          )}
-          {hasQuery && (
             <div
               className="results"
               id="results"
@@ -319,29 +362,51 @@ export function App() {
               aria-label="Search results"
               aria-busy={pending}
             >
-              {results.map((entry, i) => {
-                return (
-                  <div
-                    id={`result-${i}`}
-                    key={entry.id}
-                    role="option"
-                    aria-selected={i === selected}
-                    className={`result ${i === selected ? 'selected' : ''}`}
-                    onMouseMove={() => setSelected(i)}
-                    onClick={() => void launch(entry)}
-                  >
-                    <ResultIcon entry={entry} revision={revision} />
-                    <div className="result-text">
-                      <span className="result-name">{entry.name}</span>
-                      <span className="result-path" title={entry.path}>
-                        {entry.kind === 'app' ? entry.keywords || entry.path : entry.path}
-                      </span>
-                    </div>
-                    <span className="result-kind">{kindLabels[entry.kind]}</span>
-                    {i === selected && <CornerDownLeft className="result-enter" size={16} />}
+              {displayedResults.length > 0 && filter === 'all' && (
+                <>
+                  <section className="result-section top-result">
+                    <div className="section-heading">Top Result</div>
+                    {resultRow(displayedResults[0], true)}
+                  </section>
+                  {resultGroups.map(
+                    (group) =>
+                      group.entries.length > 0 && (
+                        <section className="result-section" key={group.key}>
+                          <div className="section-heading">
+                            <span>{group.label}</span>
+                            <button
+                              aria-label={group.label}
+                              onClick={() => {
+                                setFilter(group.key);
+                                focusSearch();
+                              }}
+                            >
+                              See all <ChevronRight size={12} />
+                            </button>
+                          </div>
+                          {group.entries.map((entry) => resultRow(entry))}
+                        </section>
+                      ),
+                  )}
+                </>
+              )}
+              {displayedResults.length > 0 && filter !== 'all' && (
+                <section className="result-section top-result">
+                  <div className="section-heading">
+                    <span>{filters.find((item) => item.key === filter)?.label}</span>
+                    <button
+                      aria-label="All"
+                      onClick={() => {
+                        setFilter('all');
+                        focusSearch();
+                      }}
+                    >
+                      All results <ChevronRight size={12} />
+                    </button>
                   </div>
-                );
-              })}
+                  {displayedResults.map((entry, index) => resultRow(entry, index === 0))}
+                </section>
+              )}
               {!results.length && (
                 <div className="empty-state">
                   <span className="empty-icon">

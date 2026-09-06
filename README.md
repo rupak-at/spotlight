@@ -14,8 +14,9 @@ The Rust engine owns file discovery, ranking, and the SQLite index. The desktop 
 - A single resident process with an X11 global shortcut and a `--toggle` entry point for GNOME shortcuts.
 - Background indexing, a transactional SQLite cache, and coalesced filesystem change notifications.
 - Dark/light/system appearance, accent color, compact results, search roots, exclusions, limits, and shortcut customization.
-- A centered 680×96 search bar that expands and recenters as a compact 680×460 result panel only after typing, with system application icons and file-type icons from Ubuntu's theme.
-- Neutral charcoal dark mode, a monochrome app icon, and adjustable translucent background (94% opaque by default) without glow effects.
+- A centered 680×96 command bar that expands and recenters as a compact 680×460 panel with a top result and grouped application, file, and folder sections.
+- Deep neutral dark mode, a clean light mode, a monochrome app icon, and adjustable translucent background (94% opaque by default) without glow effects.
+- Reliable search-field focus on launch, shortcut reopening, native focus return, group changes, and leaving Settings.
 - Stable result replacement during typing and background refreshes, without clearing the visible list between completed searches.
 - Explicit errors and notices for shortcut conflicts, unavailable folders, and incomplete indexing.
 
