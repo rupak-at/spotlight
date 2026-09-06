@@ -10,7 +10,7 @@ const response = (name: string): SearchResponse => ({
   total: 1,
 });
 
-it('clears stale results immediately and rejects a late response from an older query', async () => {
+it('keeps complete results visible while replacing them and rejects a late response', async () => {
   const resolve: Record<string, (value: SearchResponse) => void> = {};
   vi.mocked(api.search).mockImplementation(
     (query) =>
@@ -22,18 +22,32 @@ it('clears stale results immediately and rejects a late response from an older q
     initialProps: { query: 'fire' },
   });
   await waitFor(() => expect(resolve.fire).toBeDefined());
-  rerender({ query: 'files' });
-  expect(result.current.data).toBeUndefined();
-  expect(result.current.pending).toBe(true);
-  await waitFor(() => expect(resolve.files).toBeDefined());
-  await act(async () => {
-    resolve.files(response('Files'));
-  });
-  expect(result.current.data?.results[0].name).toBe('Files');
   await act(async () => {
     resolve.fire(response('Firefox'));
   });
-  expect(result.current.data?.results[0].name).toBe('Files');
+  rerender({ query: 'files' });
+  expect(result.current.data?.results[0].name).toBe('Firefox');
+  expect(result.current.pending).toBe(true);
+  await waitFor(() => expect(resolve.files).toBeDefined());
+  rerender({ query: 'docs' });
+  await waitFor(() => expect(resolve.docs).toBeDefined());
+  await act(async () => {
+    resolve.docs(response('Documents'));
+  });
+  expect(result.current.data?.results[0].name).toBe('Documents');
+  await act(async () => {
+    resolve.files(response('Files'));
+  });
+  expect(result.current.data?.results[0].name).toBe('Documents');
+});
+
+it('does not search or show suggestions for an empty query', async () => {
+  const search = vi.mocked(api.search);
+  const { result } = renderHook(() => useSearch('   ', 'all', 0));
+  await act(async () => await new Promise((resolve) => setTimeout(resolve, 60)));
+  expect(search).not.toHaveBeenCalled();
+  expect(result.current.data).toBeUndefined();
+  expect(result.current.pending).toBe(false);
 });
 
 it('exposes query failures without leaving an endless loading state', async () => {

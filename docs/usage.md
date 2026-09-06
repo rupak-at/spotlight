@@ -4,7 +4,9 @@ Launch **Spotlight** from Ubuntu's application menu, run `spotlight`, or press t
 
 ## Search and open
 
-Type an application, file, or folder name. Results update from the local index; no network service is involved. Use **All**, **Applications**, **Files**, or **Folders** to narrow the results.
+Spotlight opens as a single 680×96 search bar. Type an application, file, or folder name and the window expands to show results. It does not show suggestions, filters, status controls, or an empty result panel before you type. Results update from the local index; no network service is involved. Use **All**, **Applications**, **Files**, or **Folders** to narrow the results after the panel expands.
+
+Completed results stay visible while the next query or refreshed index is processed, then the complete replacement appears at once. Opening is temporarily disabled during that short replacement, which prevents an older result from launching for newer text.
 
 Application icons come from Ubuntu's installed desktop entries and icon theme. Files use the system icon for their detected type; folders use the theme's folder icon. A type-specific fallback appears while loading or when no theme icon is available. File types are inferred from names without reading file contents.
 
@@ -45,7 +47,7 @@ Under **Appearance & shortcuts**, choose dark, light, or system appearance; an a
 
 **Background opacity** ranges from 80% to 100%, with 94% as the default. It affects only the panel background; text and icons remain fully opaque. Dark mode uses neutral charcoal and silver, without glow effects. Native transparency requires compositing; actual blur of other desktop windows depends on the compositor and is not guaranteed by the webview's CSS backdrop filter. Set opacity to 100% for a solid background.
 
-The native window starts at 680×460 and can be resized. File/app icons follow Ubuntu's system icon theme; the appearance setting changes the launcher itself.
+The native window starts at 680×96 and expands to 680×460 for results or Settings. Its size is fixed so the rounded translucent surface stays consistent. File/app icons follow Ubuntu's system icon theme; the appearance setting changes the launcher itself.
 
 ## Refresh and indexing notices
 

@@ -5,11 +5,11 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 ## Completed
 
 - Eight Rust tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, and SQLite rollback. The full linked workspace test command passes.
-- Four frontend tests covering stale asynchronous replies, errors, keyboard navigation, launching the selected ID, filtering, and immediate Escape dismissal from both search and settings.
+- Five frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, keyboard navigation, launching the selected ID, filtering, and immediate Escape dismissal from both search and settings.
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
-- Browser interaction checks at 680×460 and the 520×400 minimum: search, filters, themes, exclusion editing, background opacity, settings save, and no horizontal overflow.
+- Browser interaction checks include the collapsed search-only surface, expanded results, dark/light themes, exclusion editing, background opacity, settings save, and no horizontal overflow.
 - Release compilation and creation of `target/release/bundle/deb/Spotlight_0.1.0_amd64.deb`.
 
 ## Native runtime checks
@@ -17,7 +17,7 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 The release binary was run inside the Ubuntu X11 desktop using isolated XDG config/cache directories and a temporary search folder. Checks confirmed:
 
 - Real installed application discovery and filename/folder search through Rust IPC.
-- Native themed application and folder icons, compact layout, transparent background, and a 680×460 window.
+- Native themed application and folder icons, transparent background, a 680×96 search-only window, and 680×460 expansion for results.
 - Automatic SQLite index updates when a fixture file was created and deleted.
 - The configured `Ctrl+Alt+Space` shortcut showing and focusing the launcher, including reopening a hidden window.
 - Escape hiding the native launcher immediately while a query was present.

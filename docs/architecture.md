@@ -37,7 +37,7 @@ Publish a complete immutable index through a short-held lock. Searches keep thei
 
 Keep a SQLite snapshot for warm starts. Replace cached rows in one transaction and associate them with the relevant settings. Ignore a cache from a different configuration. Refresh after startup, on explicit request, and after filesystem changes. Filesystem monitoring is a separate adapter, not search logic. A bounded channel coalesces changes; access-only events are ignored. Watch up to 8,192 discovered directories without recursively watching excluded dependency/build trees. The current worker rebuilds a bounded snapshot; true incremental updates remain future work.
 
-Serialize index jobs. Coalesce refresh requests; configuration revisions prevent an obsolete scan from publishing after the user changes roots. The frontend debounces queries and rejects late replies. Never launch an item from results belonging to an earlier query.
+Serialize index jobs. Coalesce refresh requests; configuration revisions prevent an obsolete scan from publishing after the user changes roots. The frontend debounces queries, keeps the last complete response visible, and replaces it atomically when the next response arrives. Pending results cannot be launched, and late replies are rejected. Index-start status events do not invalidate a query; the completed snapshot triggers one replacement search.
 
 ## Settings and customization
 
@@ -45,7 +45,7 @@ Use XDG config/cache locations. Validate roots, result limits, traversal limits,
 
 ## Desktop lifecycle
 
-Keep one application process running while the search window is hidden. Escape hides; the explicit Quit action exits. Reinvoking `spotlight --toggle` toggles the existing window. Use the global shortcut plugin on X11; use GNOME's custom shortcut facility on Wayland. Startup and shortcut failures are visible and actionable, not fatal to search.
+Keep one application process running while the search window is hidden. Escape hides; the explicit Quit action exits. Reinvoking `spotlight --toggle` toggles the existing window. The empty launcher is a 680×96 search bar and expands to 680×460 only for a query or Settings. Use the global shortcut plugin on X11; debounce repeated press events for 450 ms and map the GTK window before requesting focus. Use GNOME's custom shortcut facility on Wayland. Startup and shortcut failures are visible and actionable, not fatal to search.
 
 GNOME reserves Super+Space for input-source switching by default. The application documents reassignment and does not silently overwrite desktop settings. [GNOME documentation](https://help.gnome.org/gnome-help/keyboard-layouts.html). The upstream hotkey library currently supports Linux X11 only. [Upstream support](https://github.com/tauri-apps/global-hotkey).
 

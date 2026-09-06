@@ -15,16 +15,14 @@
         "label": "main",
         "title": "Spotlight",
         "width": 680,
-        "height": 460,
-        "minWidth": 520,
-        "minHeight": 400,
+        "height": 96,
         "center": true,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
-        "resizable": true
+        "resizable": false
       }
     ],
     "security": {

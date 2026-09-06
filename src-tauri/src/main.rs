@@ -18,6 +18,7 @@ use std::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         mpsc, Arc, Mutex, RwLock,
     },
+    time::{Duration, Instant},
 };
 use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
@@ -108,6 +109,17 @@ fn get_icon(state: tauri::State<AppState>, id: String) -> Option<String> {
 }
 
 #[tauri::command]
+fn set_launcher_expanded(app: tauri::AppHandle, expanded: bool) -> Result<()> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or("Launcher window is unavailable.")?;
+    let height = if expanded { 460.0 } else { 96.0 };
+    window
+        .set_size(tauri::LogicalSize::new(680.0, height))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<Settings> {
     settings.validate()?;
     Shortcut::from_str(&settings.shortcut).map_err(|error| format!("Invalid shortcut: {error}"))?;
@@ -167,6 +179,11 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| toggle(app)))
         .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                // WebKitGTK's natural request is 200 px high. Let the native
+                // window follow the compact 96 px launcher size instead.
+                window.with_webview(|webview| webview.inner().set_size_request(1, 1))?;
+            }
             let config_path = app.path().app_config_dir()?.join("settings.json");
             let cache_path = app.path().app_cache_dir()?.join("index.sqlite3");
             let mut warnings = Vec::new();
@@ -184,9 +201,21 @@ fn main() {
                 revision: AtomicU64::new(0), shortcut_ready: AtomicBool::new(false), refresh: sender.clone(), config_path, cache_path,
             });
             if !wayland {
-                let plugin = tauri_plugin_global_shortcut::Builder::new().with_handler(|app, _, event| {
-                    if event.state() == ShortcutState::Pressed { toggle(app); }
-                }).build();
+                let last_shortcut = Mutex::new(None::<Instant>);
+                let plugin = tauri_plugin_global_shortcut::Builder::new()
+                    .with_handler(move |app, _, event| {
+                        if event.state() != ShortcutState::Pressed {
+                            return;
+                        }
+                        let now = Instant::now();
+                        let mut last = last_shortcut.lock().unwrap();
+                        if last.is_some_and(|previous| now.duration_since(previous) < Duration::from_millis(450)) {
+                            return;
+                        }
+                        *last = Some(now);
+                        toggle(app);
+                    })
+                    .build();
                 match app.handle().plugin(plugin) {
                     Ok(()) => app.state::<AppState>().shortcut_ready.store(true, Ordering::SeqCst),
                     Err(error) => app.state::<AppState>().status.lock().unwrap().shortcut_message = Some(format!("Global shortcuts unavailable: {error}. Configure a GNOME shortcut for spotlight --toggle.")),
@@ -201,7 +230,7 @@ fn main() {
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event { api.prevent_close(); let _ = window.hide(); }
         })
-        .invoke_handler(tauri::generate_handler![search, get_settings, get_status, get_icon, save_settings, refresh_index, launch, hide_window, quit])
+        .invoke_handler(tauri::generate_handler![search, get_settings, get_status, get_icon, set_launcher_expanded, save_settings, refresh_index, launch, hide_window, quit])
         .run(tauri::generate_context!())
         .expect("Could not start Spotlight. Run from a terminal to inspect desktop or WebKitGTK errors.");
 }

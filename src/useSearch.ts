@@ -4,9 +4,11 @@ import type { Filter, SearchResponse } from './types';
 
 export function useSearch(query: string, filter: Filter, revision: number) {
   const key = `${revision}:${filter}:${query}`;
+  const enabled = query.trim().length > 0;
   const [reply, setReply] = useState<{ key: string; data: SearchResponse }>();
   const [failure, setFailure] = useState<{ key: string; message: string }>();
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
     const timer = setTimeout(() => {
       void api
@@ -25,10 +27,12 @@ export function useSearch(query: string, filter: Filter, revision: number) {
       active = false;
       clearTimeout(timer);
     };
-  }, [query, filter, revision, key]);
+  }, [query, filter, revision, key, enabled]);
   return {
-    data: reply?.key === key ? reply.data : undefined,
-    error: failure?.key === key ? failure.message : undefined,
-    pending: reply?.key !== key && failure?.key !== key,
+    // Keep the last complete result set visible until its replacement arrives.
+    // `pending` prevents stale results from being launched in the meantime.
+    data: enabled ? reply?.data : undefined,
+    error: enabled && failure?.key === key ? failure.message : undefined,
+    pending: enabled && reply?.key !== key && failure?.key !== key,
   };
 }

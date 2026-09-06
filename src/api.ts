@@ -105,5 +105,7 @@ export const api = {
   hide: () => (desktop ? invoke<void>('hide_window') : Promise.resolve()),
   quit: () => (desktop ? invoke<void>('quit') : Promise.resolve()),
   refresh: () => (desktop ? invoke<void>('refresh_index') : Promise.resolve()),
+  resize: (expanded: boolean) =>
+    desktop ? invoke<void>('set_launcher_expanded', { expanded }) : Promise.resolve(),
   on: async (event: string, callback: () => void) => (desktop ? listen(event, callback) : () => {}),
 };

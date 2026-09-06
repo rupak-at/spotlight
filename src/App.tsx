@@ -51,7 +51,9 @@ export function App() {
         .then((value) => {
           if (alive) {
             setStatus(value);
-            setRevision((r) => r + 1);
+            // A scan-start event only changes the small status indicator. Search
+            // again after the complete snapshot is published.
+            if (!value.indexing) setRevision((r) => r + 1);
           }
         })
         .catch((error) => {
@@ -76,6 +78,7 @@ export function App() {
           setQuery('');
           setFilter('all');
           setError('');
+          void api.resize(false).catch((error) => setError(String(error)));
           requestAnimationFrame(() => input.current?.focus());
         },
       ],
@@ -113,6 +116,11 @@ export function App() {
   useEffect(() => {
     if (!showSettings) input.current?.focus();
   }, [showSettings]);
+  const hasQuery = query.trim().length > 0;
+  const expanded = showSettings || hasQuery;
+  useEffect(() => {
+    void api.resize(expanded).catch((error) => setError(String(error)));
+  }, [expanded]);
 
   async function launch(entry: Entry) {
     if (launchingRef.current || pending) return;
@@ -166,18 +174,18 @@ export function App() {
 
   return (
     <main
-      className={`launcher ${settings?.compact !== false ? 'compact' : ''}`}
+      className={`launcher ${expanded ? 'expanded' : 'search-only'} ${settings?.compact !== false ? 'compact' : ''}`}
       onKeyDown={keyDown}
     >
-      <div
-        className="titlebar"
-        onMouseDown={(event) => {
-          if (desktop && event.button === 0 && !(event.target as HTMLElement).closest('button'))
-            safely(getCurrentWindow().startDragging());
-        }}
-      >
-        <span className="wordmark">Spotlight</span>
-        <div className="window-actions">
+      {showSettings && (
+        <div
+          className="titlebar"
+          onMouseDown={(event) => {
+            if (desktop && event.button === 0 && !(event.target as HTMLElement).closest('button'))
+              safely(getCurrentWindow().startDragging());
+          }}
+        >
+          <span className="wordmark">Spotlight</span>
           <button
             className="icon-button"
             aria-label="Hide Spotlight"
@@ -187,7 +195,7 @@ export function App() {
             <X size={16} />
           </button>
         </div>
-      </div>
+      )}
       {showSettings && settings ? (
         <SettingsPanel
           settings={settings}
@@ -200,14 +208,24 @@ export function App() {
         />
       ) : (
         <>
-          <div className="search-box">
+          <div
+            className="search-box"
+            onMouseDown={(event) => {
+              if (
+                desktop &&
+                event.button === 0 &&
+                !(event.target as HTMLElement).closest('input, button')
+              )
+                safely(getCurrentWindow().startDragging());
+            }}
+          >
             <Search className="search-glyph" size={25} strokeWidth={1.6} />
             <input
               ref={input}
               role="combobox"
               aria-label="Search applications, files, and folders"
               aria-controls="results"
-              aria-expanded={true}
+              aria-expanded={hasQuery}
               aria-activedescendant={active ? `result-${selected}` : undefined}
               aria-autocomplete="list"
               placeholder="Search anything"
@@ -221,25 +239,51 @@ export function App() {
                 setError('');
               }}
             />
+            <div className="search-actions">
+              {warnings.length > 0 && (
+                <span className="search-warning" title={warnings.join('\n')}>
+                  <CircleAlert size={15} />
+                </span>
+              )}
+              <button
+                className="icon-button"
+                title="Settings (Ctrl+,)"
+                aria-label="Settings"
+                disabled={!settings}
+                onClick={() => setShowSettings(true)}
+              >
+                <Settings2 size={16} />
+              </button>
+              <button
+                className="icon-button"
+                aria-label="Hide Spotlight"
+                title="Hide Spotlight (Esc)"
+                onClick={() => safely(api.hide())}
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
-          <div className="filter-row">
-            <nav aria-label="Result types">
-              {filters.map((item) => (
-                <button
-                  key={item.key}
-                  aria-pressed={filter === item.key}
-                  onClick={() => {
-                    setFilter(item.key);
-                    input.current?.focus();
-                  }}
-                >
-                  {item.label}
-                  {item.key === filter && <span className="filter-dot" />}
-                </button>
-              ))}
-            </nav>
-          </div>
-          {warnings.length > 0 && (
+          {hasQuery && (
+            <div className="filter-row">
+              <nav aria-label="Result types">
+                {filters.map((item) => (
+                  <button
+                    key={item.key}
+                    aria-pressed={filter === item.key}
+                    onClick={() => {
+                      setFilter(item.key);
+                      input.current?.focus();
+                    }}
+                  >
+                    {item.label}
+                    {item.key === filter && <span className="filter-dot" />}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
+          {hasQuery && warnings.length > 0 && (
             <details className="notice">
               <summary>
                 <CircleAlert size={13} />
@@ -253,128 +297,125 @@ export function App() {
               </div>
             </details>
           )}
-          {(error || searchError) && (
+          {hasQuery && (error || searchError) && (
             <div className="error-message" role="alert">
               {error || searchError}
             </div>
           )}
-          <div className="results-heading">
-            <span>{query ? 'Results' : 'Suggestions'}</span>
-            <span>
-              {pending
-                ? 'Searching…'
-                : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
-            </span>
-          </div>
-          <div
-            className="results"
-            id="results"
-            role="listbox"
-            aria-label="Search results"
-            aria-busy={pending}
-          >
-            {results.map((entry, i) => {
-              return (
-                <div
-                  id={`result-${i}`}
-                  key={entry.id}
-                  role="option"
-                  aria-selected={i === selected}
-                  className={`result ${i === selected ? 'selected' : ''}`}
-                  onMouseMove={() => setSelected(i)}
-                  onClick={() => void launch(entry)}
-                >
-                  <ResultIcon entry={entry} revision={revision} />
-                  <div className="result-text">
-                    <span className="result-name">{entry.name}</span>
-                    <span className="result-path" title={entry.path}>
-                      {entry.kind === 'app' ? entry.keywords || entry.path : entry.path}
-                    </span>
+          {hasQuery && (
+            <div className="results-heading">
+              <span>{query ? 'Results' : 'Suggestions'}</span>
+              <span>
+                {pending
+                  ? 'Searching…'
+                  : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
+              </span>
+            </div>
+          )}
+          {hasQuery && (
+            <div
+              className="results"
+              id="results"
+              role="listbox"
+              aria-label="Search results"
+              aria-busy={pending}
+            >
+              {results.map((entry, i) => {
+                return (
+                  <div
+                    id={`result-${i}`}
+                    key={entry.id}
+                    role="option"
+                    aria-selected={i === selected}
+                    className={`result ${i === selected ? 'selected' : ''}`}
+                    onMouseMove={() => setSelected(i)}
+                    onClick={() => void launch(entry)}
+                  >
+                    <ResultIcon entry={entry} revision={revision} />
+                    <div className="result-text">
+                      <span className="result-name">{entry.name}</span>
+                      <span className="result-path" title={entry.path}>
+                        {entry.kind === 'app' ? entry.keywords || entry.path : entry.path}
+                      </span>
+                    </div>
+                    <span className="result-kind">{kindLabels[entry.kind]}</span>
+                    {i === selected && <CornerDownLeft className="result-enter" size={16} />}
                   </div>
-                  <span className="result-kind">{kindLabels[entry.kind]}</span>
-                  {i === selected && <CornerDownLeft className="result-enter" size={16} />}
+                );
+              })}
+              {!results.length && (
+                <div className="empty-state">
+                  <span className="empty-icon">
+                    <Search size={26} strokeWidth={1.3} />
+                  </span>
+                  <h2>
+                    {pending
+                      ? 'Searching…'
+                      : status?.indexing
+                        ? 'Indexing your files'
+                        : query
+                          ? 'No results'
+                          : 'Ready to search'}
+                  </h2>
+                  <p>
+                    {pending
+                      ? ' '
+                      : status?.indexing
+                        ? 'Your index is being built in the background.'
+                        : query
+                          ? 'Try a different name, or add a search folder in settings.'
+                          : 'Add folders in settings, or refresh your application index.'}
+                  </p>
                 </div>
-              );
-            })}
-            {!results.length && (
-              <div className="empty-state">
-                <span className="empty-icon">
-                  <Search size={26} strokeWidth={1.3} />
+              )}
+            </div>
+          )}
+          {hasQuery && (
+            <footer className="launcher-footer">
+              <div className="key-hints">
+                <span>
+                  <kbd>
+                    <ArrowUp size={11} />
+                  </kbd>
+                  <kbd>
+                    <ArrowDown size={11} />
+                  </kbd>{' '}
+                  navigate
                 </span>
-                <h2>
-                  {pending
-                    ? 'Searching…'
-                    : status?.indexing
-                      ? 'Indexing your files'
-                      : query
-                        ? 'No results'
-                        : 'Ready to search'}
-                </h2>
-                <p>
-                  {pending
-                    ? ' '
-                    : status?.indexing
-                      ? 'Your index is being built in the background.'
-                      : query
-                        ? 'Try a different name, or add a search folder in settings.'
-                        : 'Add folders in settings, or refresh your application index.'}
-                </p>
+                <span>
+                  <kbd>
+                    <CornerDownLeft size={12} />
+                  </kbd>{' '}
+                  {launching ? 'opening…' : 'open'}
+                </span>
               </div>
-            )}
-          </div>
-          <footer className="launcher-footer">
-            <div className="key-hints">
-              <span>
-                <kbd>
-                  <ArrowUp size={11} />
-                </kbd>
-                <kbd>
-                  <ArrowDown size={11} />
-                </kbd>{' '}
-                navigate
-              </span>
-              <span>
-                <kbd>
-                  <CornerDownLeft size={12} />
-                </kbd>{' '}
-                {launching ? 'opening…' : 'open'}
-              </span>
-            </div>
-            <div className="footer-actions">
-              <span className="index-status" aria-live="polite">
-                <span className={status?.indexing ? 'status-dot indexing' : 'status-dot'} />
-                {status?.indexing ? 'Indexing…' : ''}
-              </span>
-              <button
-                className="icon-button"
-                title="Refresh index"
-                aria-label="Refresh index"
-                onClick={() => safely(api.refresh())}
-              >
-                <RefreshCw size={15} className={status?.indexing ? 'spin' : ''} />
-              </button>
-              <button
-                className="icon-button"
-                title="Settings (Ctrl+,)"
-                aria-label="Settings"
-                disabled={!settings}
-                onClick={() => setShowSettings(true)}
-              >
-                <Settings2 size={16} />
-              </button>
-              <button
-                className="icon-button"
-                title="Quit Spotlight"
-                aria-label="Quit Spotlight"
-                onClick={() => safely(api.quit())}
-              >
-                <Power size={15} />
-              </button>
-            </div>
-          </footer>
+              <div className="footer-actions">
+                <span className="index-status" aria-live="polite">
+                  <span className={status?.indexing ? 'status-dot indexing' : 'status-dot'} />
+                  {status?.indexing ? 'Indexing…' : ''}
+                </span>
+                <button
+                  className="icon-button"
+                  title="Refresh index"
+                  aria-label="Refresh index"
+                  onClick={() => safely(api.refresh())}
+                >
+                  <RefreshCw size={15} className={status?.indexing ? 'spin' : ''} />
+                </button>
+                <button
+                  className="icon-button"
+                  title="Quit Spotlight"
+                  aria-label="Quit Spotlight"
+                  onClick={() => safely(api.quit())}
+                >
+                  <Power size={15} />
+                </button>
+              </div>
+            </footer>
+          )}
         </>
       )}
-      {!desktop && (
+      {!desktop && hasQuery && (
         <div className="preview-note">
           <Command size={13} /> UI preview with sample data · <code>npm run desktop</code> for local
           search

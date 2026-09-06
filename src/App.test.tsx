@@ -9,7 +9,9 @@ it('navigates results, launches the selected ID, and hides on Escape with a quer
   const hide = vi.spyOn(api, 'hide').mockResolvedValue();
   render(<App />);
   const input = screen.getByRole('combobox');
-  await waitFor(() => expect(screen.getAllByRole('option').length).toBe(7));
+  expect(screen.queryByRole('option')).toBeNull();
+  fireEvent.change(input, { target: { value: 'fi' } });
+  await waitFor(() => expect(screen.getAllByRole('option').length).toBe(2));
   fireEvent.keyDown(input, { key: 'ArrowDown' });
   expect(input.getAttribute('aria-activedescendant')).toBe('result-1');
   fireEvent.keyDown(input, { key: 'Enter' });
@@ -25,6 +27,7 @@ it('navigates results, launches the selected ID, and hides on Escape with a quer
 it('filters files and opens settings from the keyboard', async () => {
   const hide = vi.spyOn(api, 'hide').mockResolvedValue();
   render(<App />);
+  fireEvent.change(screen.getByRole('combobox'), { target: { value: 'architecture' } });
   fireEvent.click(screen.getByRole('button', { name: 'Files' }));
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(1));
   expect(screen.getByText('architecture.md')).toBeTruthy();
