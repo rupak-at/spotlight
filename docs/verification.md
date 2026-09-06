@@ -9,7 +9,7 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
-- Browser interaction checks include the collapsed search-only surface, expanded results, dark/light themes, exclusion editing, background opacity, settings save, and no horizontal overflow.
+- Browser interaction checks include the collapsed search-only surface at 96 px and a fractional-scale 77 CSS px, expanded results, dark/light themes, exclusion editing, background opacity, settings save, centered search controls, and no overflow.
 - Release compilation and creation of `target/release/bundle/deb/Spotlight_0.1.0_amd64.deb`.
 
 ## Native runtime checks
