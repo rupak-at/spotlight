@@ -46,7 +46,20 @@ On **Wayland**, set a GNOME custom keyboard shortcut for `/usr/bin/spotlight --t
 
 Launching Spotlight a second time toggles the existing window. Closing the window hides it; use the power button in its footer to quit the process.
 
-## Build and install
+## Install a release
+
+Download the Ubuntu amd64 `.deb` from the [latest GitHub Release](https://github.com/rupak-at/spotlight/releases/latest), then run these commands from your Downloads directory:
+
+```sh
+install -m 0644 ./Spotlight_*_amd64.deb /tmp/spotlight.deb
+sudo apt install /tmp/spotlight.deb
+rm /tmp/spotlight.deb
+spotlight
+```
+
+The installed package does not need Node.js, Rust, or a development server. Each pushed version tag is checked, built on Ubuntu 24.04, and published automatically. See [installation](docs/installation.md) for shortcut, autostart, update, and uninstall steps.
+
+## Build and install locally
 
 ```sh
 npm run package

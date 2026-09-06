@@ -15,6 +15,7 @@
     "check": "tsc --noEmit",
     "desktop": "tauri dev",
     "package": "tauri build --bundles deb",
+    "release:check": "node scripts/check-release-version.mjs",
     "format": "prettier --write . && cargo fmt --all",
     "format:check": "prettier --check . && cargo fmt --all -- --check",
     "lint": "eslint . --max-warnings 0",

@@ -4,18 +4,18 @@ Spotlight is a local desktop application for Ubuntu 24.04, built with Tauri, Rus
 
 ## Install a published package
 
-If the repository owner has attached a `.deb` to a GitHub Release, download the package matching your Ubuntu version and architecture. The currently built package is `Spotlight_0.1.0_amd64.deb` for x86_64 Ubuntu 24.04.
+Open the [latest GitHub Release](https://github.com/rupak-at/spotlight/releases/latest) and download the `.deb` asset. Releases currently provide an x86_64 package built on Ubuntu 24.04, named like `Spotlight_0.1.0_amd64.deb`.
 
 From the folder containing the downloaded package:
 
 ```sh
-install -m 0644 ./Spotlight_0.1.0_amd64.deb /tmp/spotlight.deb
+install -m 0644 ./Spotlight_*_amd64.deb /tmp/spotlight.deb
 sudo apt install /tmp/spotlight.deb
 rm /tmp/spotlight.deb
 spotlight
 ```
 
-You can also open **Spotlight** from Ubuntu's application menu. Package installation does not require Node.js, Rust, or a local development server. A Git push alone does not publish a downloadable package; the owner must attach the `.deb` to a release separately.
+You can also open **Spotlight** from Ubuntu's application menu. Package installation does not require Node.js, Rust, or a local development server. GitHub verifies the Release asset transport; this project does not yet publish a separate package signature or APT repository.
 
 ## Build after cloning the repository
 
@@ -50,7 +50,7 @@ npm run package
 Install the generated package:
 
 ```sh
-install -m 0644 ./target/release/bundle/deb/Spotlight_0.1.0_amd64.deb /tmp/spotlight.deb
+install -m 0644 ./target/release/bundle/deb/Spotlight_*_amd64.deb /tmp/spotlight.deb
 sudo apt install /tmp/spotlight.deb
 rm /tmp/spotlight.deb
 spotlight
@@ -61,6 +61,28 @@ APT downloads and verifies packages as the restricted `_apt` user. Staging the p
 For a quick check without installation, run `./target/release/spotlight`. See [development](development.md) for live UI and Rust development.
 
 Native prerequisites follow [Tauri's Ubuntu instructions](https://v2.tauri.app/start/prerequisites/). Build on the oldest Ubuntu release you intend to support: binaries built against newer glibc/WebKit libraries may not run on older Ubuntu versions. [Debian packaging details](https://v2.tauri.app/distribute/debian/).
+
+## Publish a release
+
+This repository publishes packages from version tags. Before tagging, update the same semantic version in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`. Then verify and push the normal change commit:
+
+```sh
+npm run release:check
+npm test
+npm run lint
+npm run format:check
+npm run package
+git push origin main
+```
+
+Create and push an annotated tag that exactly matches the application version:
+
+```sh
+git tag -a v0.1.0 -m "Spotlight v0.1.0"
+git push origin v0.1.0
+```
+
+The `Release` GitHub Actions workflow rejects a mismatched tag, runs the frontend checks, builds the `.deb` on Ubuntu 24.04 amd64, and creates a public GitHub Release. Follow the workflow in the repository's **Actions** tab. When it succeeds, verify the release page and install its downloaded asset on a clean supported machine. A regular branch push runs CI but does not publish a package.
 
 ## Configure Super + Space
 

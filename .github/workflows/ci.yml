@@ -20,6 +20,7 @@ jobs:
       - name: Install Rust
         run: rustup update stable && rustup default stable && rustup component add rustfmt clippy
       - run: npm ci
+      - run: npm run release:check
       - run: npm test
       - run: npm run lint
       - run: npm run format:check

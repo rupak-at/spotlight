@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 description = "A fast, customizable desktop launcher for Ubuntu"
 authors = ["Spotlight contributors"]
+license = "MIT"
+repository = "https://github.com/rupak-at/spotlight"
+homepage = "https://github.com/rupak-at/spotlight"
 default-run = "spotlight"
 
 [build-dependencies]

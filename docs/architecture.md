@@ -60,7 +60,7 @@ GNOME reserves Super+Space for input-source switching by default. The applicatio
 
 ## Verification and release criteria
 
-Core tests cover ranking, filtering, Unicode, traversal exclusions, root validation, SQLite replacement, and cache invalidation. Frontend checks cover stale asynchronous results and keyboard interaction. CI runs type checking, frontend build, Rust tests, formatting, and Clippy on Ubuntu. Native smoke tests validate the installed environment separately.
+Core tests cover ranking, filtering, Unicode, traversal exclusions, root validation, SQLite replacement, and cache invalidation. Frontend checks cover stale asynchronous results and keyboard interaction. CI runs type checking, frontend build, Rust tests, formatting, Clippy, and release-version alignment on Ubuntu. Version tags pass a separate Ubuntu 24.04 amd64 workflow that creates a public GitHub Release and attaches the generated `.deb`. Native smoke tests validate the installed environment separately.
 
 Measure warm query latency against a 50,000-entry synthetic index and record the environment and build profile; do not substitute that for real filesystem benchmarks. Before a production release, measure p50/p95 query and show-to-focus latency, startup time, idle RSS/CPU, index time and memory, and battery impact on supported hardware.
 

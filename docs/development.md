@@ -32,6 +32,7 @@ npm run format
 npm run lint
 npm test
 npm run build
+npm run release:check
 cargo test --workspace --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 git add <relevant-paths>
@@ -88,7 +89,9 @@ The benchmark reports synthetic in-memory search latency for 50,000 entries. It 
 
 The package command builds `target/release/spotlight` and a `.deb` under `target/release/bundle/deb/`. Use the native binary or package to check the final assets; browser hot reload alone does not verify the release build.
 
-For a release, keep the application version in `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` aligned and refresh the affected lockfiles. Update package filenames in installation instructions. Attach the tested `.deb` to the GitHub Release manually; this repository's CI currently performs checks and does not publish artifacts or releases.
+`npm run release:check` verifies that `package.json`, the root of `package-lock.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` use one version. When given a tag, it also requires the exact `v<version>` form. CI runs this check on every branch.
+
+For a release, update those versions and refresh both lockfiles as needed. Commit and push the verified change, then push an annotated tag such as `v0.1.0`. The tag starts `.github/workflows/release.yml`, which checks the tag, builds on Ubuntu 24.04 amd64 with `tauri-apps/tauri-action`, and creates a public GitHub Release containing the `.deb`. Exact maintainer commands and end-user installation steps are in [installation](installation.md).
 
 ## Update the application icon
 

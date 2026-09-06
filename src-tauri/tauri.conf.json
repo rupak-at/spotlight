@@ -34,6 +34,16 @@
     "targets": ["deb"],
     "category": "Utility",
     "shortDescription": "Search and launch applications, files, and folders",
+    "homepage": "https://github.com/rupak-at/spotlight",
+    "licenseFile": "../LICENSE",
+    "linux": {
+      "deb": {
+        "section": "utils",
+        "files": {
+          "/usr/share/doc/spotlight/copyright": "../LICENSE"
+        }
+      }
+    },
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.png"]
   }
 }

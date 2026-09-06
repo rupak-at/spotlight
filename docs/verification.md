@@ -11,6 +11,7 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
 - Browser interaction checks include the collapsed command bar at 96 px and a fractional-scale 77 CSS px, grouped results and group switching, rapid query replacement, dark/light themes, Settings return focus, centered search controls, and no overflow.
 - Release compilation and creation of `target/release/bundle/deb/Spotlight_0.1.0_amd64.deb`.
+- Release metadata alignment check, including rejection of a tag that does not match the application version.
 
 ## Native runtime checks
 
@@ -23,7 +24,7 @@ The release binary was run inside the Ubuntu X11 desktop using isolated XDG conf
 - Escape hiding the native launcher immediately while a query was present.
 - Enter opening the temporary fixture folder in Files and launching Calculator through GIO; Spotlight hid after successful opening.
 
-Super+Space itself was not reassigned on the host, because GNOME reserves it for input-source switching. Follow [installation](installation.md) to configure it. `.deb` contents were inspected for the executable, desktop entry, icons, and runtime dependencies; installation on a clean machine remains untested.
+Super+Space itself was not reassigned on the host, because GNOME reserves it for input-source switching. Follow [installation](installation.md) to configure it. `.deb` contents were inspected for the executable, desktop entry, icons, license metadata, and runtime dependencies; installation on a clean machine remains untested. The tag-triggered GitHub Release workflow is configured locally; its first remote run must still be observed.
 
 ## Search measurements
 
