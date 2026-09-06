@@ -17,14 +17,35 @@ import {
 import { api } from './api';
 import type { Entry } from './types';
 
+const iconCache = new Map<string, string>();
+
 export function ResultIcon({ entry, revision }: { entry: Entry; revision: number }) {
-  const [loaded, setLoaded] = useState<{ id: string; source: string }>();
+  const cacheKey = `${revision}:${entry.id}`;
+  const [loaded, setLoaded] = useState<{ id: string; source: string } | undefined>(() => {
+    const source = iconCache.get(cacheKey);
+    return source ? { id: entry.id, source } : undefined;
+  });
   useEffect(() => {
     let active = true;
+    const cached = iconCache.get(cacheKey);
+    if (cached) {
+      setLoaded({ id: entry.id, source: cached });
+      return () => {
+        active = false;
+      };
+    }
     void api
       .icon(entry.id)
-      .then((source) => {
-        if (active && source) setLoaded({ id: entry.id, source });
+      .then(async (source) => {
+        if (!source) return;
+        const image = new Image();
+        image.src = source;
+        if (image.decode) await image.decode();
+        if (active) {
+          if (iconCache.size >= 256) iconCache.clear();
+          iconCache.set(cacheKey, source);
+          setLoaded({ id: entry.id, source });
+        }
       })
       .catch(() => {
         /* Keep a type-specific fallback if the system theme has no icon. */
@@ -32,7 +53,7 @@ export function ResultIcon({ entry, revision }: { entry: Entry; revision: number
     return () => {
       active = false;
     };
-  }, [entry.id, revision]);
+  }, [cacheKey, entry.id]);
   const extension = entry.name.split('.').pop()?.toLowerCase() ?? '';
   let Icon = File;
   let category = 'document';
@@ -81,7 +102,10 @@ export function ResultIcon({ entry, revision }: { entry: Entry; revision: number
           width="32"
           height="32"
           draggable={false}
-          onError={() => setLoaded(undefined)}
+          onError={() => {
+            iconCache.delete(cacheKey);
+            setLoaded(undefined);
+          }}
         />
       ) : (
         <Icon size={23} strokeWidth={1.6} />

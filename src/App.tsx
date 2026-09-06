@@ -45,15 +45,13 @@ export function App() {
   useEffect(() => {
     let alive = true;
     const cleanups: (() => void)[] = [];
-    const statusChanged = () => {
+    const statusChanged = (refreshResults: boolean) => {
       void api
         .status()
         .then((value) => {
           if (alive) {
             setStatus(value);
-            // A scan-start event only changes the small status indicator. Search
-            // again after the complete snapshot is published.
-            if (!value.indexing) setRevision((r) => r + 1);
+            if (refreshResults) setRevision((r) => r + 1);
           }
         })
         .catch((error) => {
@@ -68,9 +66,10 @@ export function App() {
       .catch((error) => {
         if (alive) setError(String(error));
       });
-    statusChanged();
+    statusChanged(false);
     for (const [event, callback] of [
-      ['index-changed', statusChanged],
+      ['index-status-changed', () => statusChanged(false)],
+      ['index-changed', () => statusChanged(true)],
       [
         'launcher-shown',
         () => {
@@ -306,7 +305,7 @@ export function App() {
             <div className="results-heading">
               <span>{query ? 'Results' : 'Suggestions'}</span>
               <span>
-                {pending
+                {pending && !data
                   ? 'Searching…'
                   : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
               </span>

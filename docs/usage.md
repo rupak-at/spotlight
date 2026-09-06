@@ -4,9 +4,9 @@ Launch **Spotlight** from Ubuntu's application menu, run `spotlight`, or press t
 
 ## Search and open
 
-Spotlight opens as a single 680×96 search bar. Type an application, file, or folder name and the window expands to show results. It does not show suggestions, filters, status controls, or an empty result panel before you type. Results update from the local index; no network service is involved. Use **All**, **Applications**, **Files**, or **Folders** to narrow the results after the panel expands.
+Spotlight opens as a single 680×96 search bar centered on the current screen. Type an application, file, or folder name and the window expands to show results, then recenters at 680×460. It does not show suggestions, filters, status controls, or an empty result panel before you type. Results update from the local index; no network service is involved. Use **All**, **Applications**, **Files**, or **Folders** to narrow the results after the panel expands.
 
-Completed results stay visible while the next query or refreshed index is processed, then the complete replacement appears at once. Opening is temporarily disabled during that short replacement, which prevents an older result from launching for newer text.
+Completed results and decoded icons stay visible while the next query or refreshed index is processed, then the complete replacement appears at once. Index-start notifications update status without triggering a duplicate search. Opening is temporarily disabled during that short replacement, which prevents an older result from launching for newer text.
 
 Application icons come from Ubuntu's installed desktop entries and icon theme. Files use the system icon for their detected type; folders use the theme's folder icon. A type-specific fallback appears while loading or when no theme icon is available. File types are inferred from names without reading file contents.
 

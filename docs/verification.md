@@ -9,7 +9,7 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
-- Browser interaction checks include the collapsed search-only surface at 96 px and a fractional-scale 77 CSS px, expanded results, dark/light themes, exclusion editing, background opacity, settings save, centered search controls, and no overflow.
+- Browser interaction checks include the collapsed search-only surface at 96 px and a fractional-scale 77 CSS px, rapid query replacement, expanded results, dark/light themes, exclusion editing, background opacity, settings save, centered search controls, and no overflow.
 - Release compilation and creation of `target/release/bundle/deb/Spotlight_0.1.0_amd64.deb`.
 
 ## Native runtime checks
@@ -17,7 +17,7 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 The release binary was run inside the Ubuntu X11 desktop using isolated XDG config/cache directories and a temporary search folder. Checks confirmed:
 
 - Real installed application discovery and filename/folder search through Rust IPC.
-- Native themed application and folder icons, transparent background, a 680×96 search-only window, and 680×460 expansion for results.
+- Native themed application and folder icons, transparent background, a centered 680×96 search-only window, and centered 680×460 expansion for results.
 - Automatic SQLite index updates when a fixture file was created and deleted.
 - The configured `Ctrl+Alt+Space` shortcut showing and focusing the launcher, including reopening a hidden window.
 - Escape hiding the native launcher immediately while a query was present.

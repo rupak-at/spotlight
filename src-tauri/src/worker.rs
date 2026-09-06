@@ -56,7 +56,7 @@ pub fn start(app: AppHandle, receiver: Receiver<()>) {
                 (settings.clone(), state.revision.load(Ordering::SeqCst))
             };
             state.status.lock().unwrap().indexing = true;
-            let _ = app.emit("index-changed", ());
+            let _ = app.emit("index-status-changed", ());
             let mut scan = files::scan(&settings, || {
                 state.revision.load(Ordering::SeqCst) != revision
             });

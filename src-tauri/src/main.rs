@@ -23,6 +23,14 @@ use std::{
 use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
+fn resize_launcher(window: &tauri::WebviewWindow, expanded: bool) -> Result<()> {
+    let height = if expanded { 460.0 } else { 96.0 };
+    window
+        .set_size(tauri::LogicalSize::new(680.0, height))
+        .map_err(|error| error.to_string())?;
+    window.center().map_err(|error| error.to_string())
+}
+
 fn toggle(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         if window.is_visible().unwrap_or(false) && window.is_focused().unwrap_or(false) {
@@ -31,6 +39,7 @@ fn toggle(app: &tauri::AppHandle) {
             // Map before focusing: Tao's queued show request can otherwise leave
             // the window hidden when its following focus request is checked.
             let _ = app.run_on_main_thread(move || {
+                let _ = resize_launcher(&window, false);
                 if let Ok(native) = window.gtk_window() {
                     native.show_all();
                     native.deiconify();
@@ -113,10 +122,7 @@ fn set_launcher_expanded(app: tauri::AppHandle, expanded: bool) -> Result<()> {
     let window = app
         .get_webview_window("main")
         .ok_or("Launcher window is unavailable.")?;
-    let height = if expanded { 460.0 } else { 96.0 };
-    window
-        .set_size(tauri::LogicalSize::new(680.0, height))
-        .map_err(|error| error.to_string())
+    resize_launcher(&window, expanded)
 }
 
 #[tauri::command]
@@ -138,7 +144,7 @@ fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<Settings> 
     }
     bind_shortcut(&app, &settings);
     let _ = state.refresh.try_send(());
-    let _ = app.emit("index-changed", ());
+    let _ = app.emit("index-status-changed", ());
     Ok(settings)
 }
 
@@ -183,6 +189,9 @@ fn main() {
                 // WebKitGTK's natural request is 200 px high. Let the native
                 // window follow the compact 96 px launcher size instead.
                 window.with_webview(|webview| webview.inner().set_size_request(1, 1))?;
+                if let Ok(native) = window.gtk_window() {
+                    native.set_position(gtk::WindowPosition::CenterAlways);
+                }
             }
             let config_path = app.path().app_config_dir()?.join("settings.json");
             let cache_path = app.path().app_cache_dir()?.join("index.sqlite3");
