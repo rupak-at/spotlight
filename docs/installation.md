@@ -9,7 +9,9 @@ If the repository owner has attached a `.deb` to a GitHub Release, download the 
 From the folder containing the downloaded package:
 
 ```sh
-sudo apt install ./Spotlight_0.1.0_amd64.deb
+install -m 0644 ./Spotlight_0.1.0_amd64.deb /tmp/spotlight.deb
+sudo apt install /tmp/spotlight.deb
+rm /tmp/spotlight.deb
 spotlight
 ```
 
@@ -48,9 +50,13 @@ npm run package
 Install the generated package:
 
 ```sh
-sudo apt install ./target/release/bundle/deb/Spotlight_0.1.0_amd64.deb
+install -m 0644 ./target/release/bundle/deb/Spotlight_0.1.0_amd64.deb /tmp/spotlight.deb
+sudo apt install /tmp/spotlight.deb
+rm /tmp/spotlight.deb
 spotlight
 ```
+
+APT downloads and verifies packages as the restricted `_apt` user. Staging the package in `/tmp` prevents a harmless permission warning when `_apt` cannot traverse your home directory. Do not make your home directory globally accessible to suppress the warning.
 
 For a quick check without installation, run `./target/release/spotlight`. See [development](development.md) for live UI and Rust development.
 
@@ -93,7 +99,7 @@ To disable it, remove only `~/.config/autostart/spotlight-autostart.desktop`.
 
 ## Update or uninstall
 
-Quit Spotlight using the power button before installing a newer package. Install the new `.deb` with the same `sudo apt install ./<package>.deb` command; normal updates retain your settings.
+Quit Spotlight using the power button before installing a newer package. Copy the new `.deb` to `/tmp/spotlight.deb` with `install -m 0644`, install it with `sudo apt install /tmp/spotlight.deb`, then remove the temporary copy. Normal updates retain your settings.
 
 To build an update from Git:
 
@@ -118,6 +124,7 @@ To uninstall the installed application, run `sudo apt remove spotlight` and remo
 | Native build cannot find GTK/WebKit             | Install the development packages above; verify `pkg-config --modversion webkit2gtk-4.1 gtk+-3.0`.                                                                                                                                                              |
 | GUI cannot initialize GTK                       | Run inside your logged-in desktop session, with a valid display. A headless shell or restricted sandbox cannot display the app.                                                                                                                                |
 | App still shows old code after a build          | Quit the existing Spotlight process before starting the new build; single-instance mode otherwise toggles the old process.                                                                                                                                     |
+| APT reports `_apt` permission denied            | Copy the `.deb` to `/tmp/spotlight.deb` with `install -m 0644`, then install that path. The warning comes from `_apt` being unable to traverse a private home directory.                                                                                       |
 | Index is incomplete or live watching fails      | Inspect the notice, narrow the roots, or increase the configured index/depth limit. Refresh manually for folders beyond the watcher limit.                                                                                                                     |
 
 See [usage](usage.md) for daily operation and [verification](verification.md) for tested behavior and remaining limits.

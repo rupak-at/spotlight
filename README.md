@@ -49,11 +49,13 @@ Launching Spotlight a second time toggles the existing window. Closing the windo
 
 ```sh
 npm run package
-sudo apt install ./target/release/bundle/deb/*.deb
+install -m 0644 ./target/release/bundle/deb/Spotlight_0.1.0_amd64.deb /tmp/spotlight.deb
+sudo apt install /tmp/spotlight.deb
+rm /tmp/spotlight.deb
 spotlight
 ```
 
-Or run `./target/release/spotlight` directly. The `.deb` provides the app-menu entry and icon. It is built against the local Ubuntu libraries; rebuild on the oldest Ubuntu version you intend to support. [Tauri Debian packaging](https://v2.tauri.app/distribute/debian/).
+Copying the package to `/tmp` lets APT's restricted `_apt` user read it without weakening permissions on your home directory. Or run `./target/release/spotlight` directly. The `.deb` provides the app-menu entry and icon. It is built against the local Ubuntu libraries; rebuild on the oldest Ubuntu version you intend to support. [Tauri Debian packaging](https://v2.tauri.app/distribute/debian/).
 
 To start the installed launcher when you sign in:
 
