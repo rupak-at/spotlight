@@ -94,6 +94,24 @@ GNOME reserves Super+Space for changing keyboard input sources by default:
 
 On X11, Spotlight registers its shortcut directly. To keep GNOME's default, choose something else such as `Ctrl+Alt+Space` in Spotlight. [GNOME input shortcuts](https://help.gnome.org/gnome-help/keyboard-layouts.html).
 
+### Left Super opens Activities or needs another press
+
+On GNOME X11, the standalone left-Super **Activities overview** binding can intercept Spotlight’s shortcut even after the input-source binding is reassigned. Compare **right Super+Space** with **left Super+Space**. If only the right key opens Spotlight with one press, check:
+
+```sh
+gsettings get org.gnome.mutter overlay-key
+```
+
+When this is `'Super_L'`, one option is to disable the standalone overview binding:
+
+```sh
+gsettings set org.gnome.mutter overlay-key ''
+```
+
+This changes GNOME behavior: pressing Super alone will no longer open Activities. The Activities button remains available. Alternatively, use `gsettings set org.gnome.mutter overlay-key 'Super_R'` to move that standalone action to right Super and use left Super+Space for Spotlight. Record the previous value before changing it; restore it to undo the change (normally `gsettings set org.gnome.mutter overlay-key 'Super_L'`). These are opt-in desktop changes; Spotlight does not apply them automatically. [GNOME overview key setting](https://discourse.gnome.org/t/right-super-key-does-not-show-the-activities-overview-but-left-super-key-does/8029).
+
+### Wayland custom shortcut
+
 On Wayland, add a GNOME custom shortcut:
 
 | Field    | Value                                               |
@@ -137,16 +155,16 @@ To uninstall the installed application, run `sudo apt remove spotlight` and remo
 
 ## Troubleshooting
 
-| Symptom                                         | What to check                                                                                                                                                                                                                                                  |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Super+Space does nothing or needs another press | Quit any older Spotlight binary, resolve the GNOME binding conflict, save the shortcut again, and restart the current build. On X11, shortcut repeat events are debounced and one press maps and focuses the window. On Wayland, use the custom command above. |
-| Results flash or disappear while typing         | Quit an older running binary and start the current build. The current UI keeps the last completed results until their atomic replacement is ready.                                                                                                             |
-| Missing file/folder results                     | Add the containing absolute path in Settings → Search & indexing. Check hidden-item settings, exclusions, and depth/size notices, then refresh.                                                                                                                |
-| `npm run dev` cannot launch a result            | This is the browser preview with sample data. Run `npm run desktop` for native search and opening.                                                                                                                                                             |
-| Native build cannot find GTK/WebKit             | Install the development packages above; verify `pkg-config --modversion webkit2gtk-4.1 gtk+-3.0`.                                                                                                                                                              |
-| GUI cannot initialize GTK                       | Run inside your logged-in desktop session, with a valid display. A headless shell or restricted sandbox cannot display the app.                                                                                                                                |
-| App still shows old code after a build          | Quit the existing Spotlight process before starting the new build; single-instance mode otherwise toggles the old process.                                                                                                                                     |
-| APT reports `_apt` permission denied            | Copy the `.deb` to `/tmp/spotlight.deb` with `install -m 0644`, then install that path. The warning comes from `_apt` being unable to traverse a private home directory.                                                                                       |
-| Index is incomplete or live watching fails      | Inspect the notice, narrow the roots, or increase the configured index/depth limit. Refresh manually for folders beyond the watcher limit.                                                                                                                     |
+| Symptom                                         | What to check                                                                                                                                                                                                                                   |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Super+Space does nothing or needs another press | On GNOME X11, compare left and right Super and check the standalone Activities binding described above, as well as the input-source binding. Quit older Spotlight builds and save the shortcut again. On Wayland, use the custom command above. |
+| Results flash or disappear while typing         | Quit an older running binary and start the current build. The current UI keeps the last completed results until their atomic replacement is ready.                                                                                              |
+| Missing file/folder results                     | Add the containing absolute path in Settings → Search & indexing. Check hidden-item settings, exclusions, and depth/size notices, then refresh.                                                                                                 |
+| `npm run dev` cannot launch a result            | This is the browser preview with sample data. Run `npm run desktop` for native search and opening.                                                                                                                                              |
+| Native build cannot find GTK/WebKit             | Install the development packages above; verify `pkg-config --modversion webkit2gtk-4.1 gtk+-3.0`.                                                                                                                                               |
+| GUI cannot initialize GTK                       | Run inside your logged-in desktop session, with a valid display. A headless shell or restricted sandbox cannot display the app.                                                                                                                 |
+| App still shows old code after a build          | Quit the existing Spotlight process before starting the new build; single-instance mode otherwise toggles the old process.                                                                                                                      |
+| APT reports `_apt` permission denied            | Copy the `.deb` to `/tmp/spotlight.deb` with `install -m 0644`, then install that path. The warning comes from `_apt` being unable to traverse a private home directory.                                                                        |
+| Index is incomplete or live watching fails      | Inspect the notice, narrow the roots, or increase the configured index/depth limit. Refresh manually for folders beyond the watcher limit.                                                                                                      |
 
 See [usage](usage.md) for daily operation and [verification](verification.md) for tested behavior and remaining limits.

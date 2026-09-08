@@ -24,7 +24,7 @@ The release binary was run inside the Ubuntu X11 desktop using isolated XDG conf
 - Escape hiding the native launcher immediately while a query was present.
 - Enter opening the temporary fixture folder in Files and launching Calculator through GIO; Spotlight hid after successful opening.
 
-Super+Space itself was not reassigned on the host, because GNOME reserves it for input-source switching. Follow [installation](installation.md) to configure it. `.deb` contents were inspected for the executable, desktop entry, icons, license metadata, and runtime dependencies; installation on a clean machine remains untested. The tag-triggered GitHub Release workflow is configured locally; its first remote run must still be observed.
+The original native checks did not reassign Super+Space. A later GNOME X11 diagnostic, after the input-source shortcut had been reassigned, found that right Super+Space opened the installed launcher on its first press while left Super+Space did not. Temporarily setting `org.gnome.mutter overlay-key` to an empty string made left Super+Space open and focus it on the first press; the original `Super_L` value was restored after the test. This isolates the standalone Activities binding as an additional conflict on this host. Follow [installation](installation.md) for the opt-in setup and its effect on Super alone. `.deb` contents were inspected for the executable, desktop entry, icons, license metadata, and runtime dependencies; installation on a clean machine remains untested. The tag-triggered GitHub Release workflow is configured locally; its first remote run must still be observed.
 
 ## Outbound drag checks
 

@@ -41,7 +41,7 @@ The first Rust build takes longer while native dependencies compile. Subsequent 
 
 ## Super + Space
 
-Ubuntu GNOME normally uses Super+Space to switch input sources. In **Settings → Keyboard → View and Customize Shortcuts → Typing**, reassign **Switch to next input source**, then restart Spotlight or save its shortcut setting again. Spotlight defaults to `Super+Space`; another option is `Ctrl+Alt+Space`. The app does not overwrite GNOME preferences.
+Ubuntu GNOME normally uses Super+Space to switch input sources. In **Settings → Keyboard → View and Customize Shortcuts → Typing**, reassign **Switch to next input source**, then restart Spotlight or save its shortcut setting again. Spotlight defaults to `Super+Space`; another option is `Ctrl+Alt+Space`. The app does not overwrite GNOME preferences. If left Super+Space still needs another press but right Super+Space works, GNOME’s standalone Activities binding may be intercepting it; see [the overview-key setup](docs/installation.md#left-super-opens-activities-or-needs-another-press).
 
 On **Wayland**, set a GNOME custom keyboard shortcut for `/usr/bin/spotlight --toggle` after installing the package. Before installation, use the absolute path to `target/release/spotlight --toggle`. Global hotkeys from Tauri's underlying library are X11-only; Wayland focus remains controlled by the compositor. [Upstream hotkey support](https://github.com/tauri-apps/global-hotkey), [GNOME input shortcuts](https://help.gnome.org/gnome-help/keyboard-layouts.html).
 
