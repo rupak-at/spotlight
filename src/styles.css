@@ -101,6 +101,14 @@ kbd {
 .launcher.search-only {
   border-radius: 18px;
 }
+.result[draggable='true'] {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.result[draggable='true']:active {
+  cursor: grabbing;
+}
 .titlebar {
   height: 30px;
   min-height: 30px;

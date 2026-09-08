@@ -39,6 +39,12 @@ Keep a SQLite snapshot for warm starts. Replace cached rows in one transaction a
 
 Serialize index jobs. Coalesce refresh requests; configuration revisions prevent an obsolete scan from publishing after the user changes roots. The frontend debounces queries, keeps the last complete response and decoded icons visible, and replaces them atomically when the next response arrives. Pending results cannot be launched, and late replies are rejected. Separate status and completion events ensure index-start notifications do not invalidate a query; each completed snapshot triggers exactly one replacement search.
 
+## Outbound file dragging
+
+File and folder rows cancel the webview’s HTML drag and request `start_file_drag` with an indexed ID. The synchronous host command resolves the current entry and revalidates its canonical path against active search roots. `src-tauri/src/drag.rs` starts a GTK drag from the native window, providing a GIO-encoded file URI as `text/uri-list` with the copy action. No file bytes or arbitrary frontend paths pass through IPC. GTK requests the URI when the destination accepts the drop; its drag-end signal clears native state and emits `file-drag-ended`. The frontend prevents launching during a drag and suppresses the trailing click until a fresh mouse press.
+
+Application entries and pending results cannot start a drag. A single URI remains available until completion or cancellation, even if the search snapshot changes. The destination controls file/folder acceptance. This desktop integration is unavailable in the sample-data browser preview. GTK’s [drag initiation](https://docs.gtk.org/gtk3/method.Widget.drag_begin_with_coordinates.html) and [URI selection API](https://docs.gtk.org/gtk3/method.SelectionData.set_uris.html) define the native transfer.
+
 ## Settings and customization
 
 Use XDG config/cache locations. Validate roots, result limits, traversal limits, shortcut syntax, themes, and accent colors at the boundary. Write settings using a temporary file and atomic rename. Expose theme, accent, density, shortcut, roots, exclusions, and search limits. A settings form is the initial extension surface; arbitrary plugins and scripts require a separate design.

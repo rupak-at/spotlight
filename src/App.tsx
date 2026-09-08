@@ -38,6 +38,8 @@ export function App() {
   const [error, setError] = useState('');
   const [launching, setLaunching] = useState(false);
   const launchingRef = useRef(false);
+  const draggingRef = useRef(false);
+  const suppressClick = useRef(false);
   const focusTimer = useRef<number | undefined>(undefined);
   const input = useRef<HTMLInputElement>(null);
   const { data, pending, error: searchError } = useSearch(query, filter, revision);
@@ -88,6 +90,12 @@ export function App() {
       });
     statusChanged(false);
     for (const [event, callback] of [
+      [
+        'file-drag-ended',
+        () => {
+          draggingRef.current = false;
+        },
+      ],
       ['index-status-changed', () => statusChanged(false)],
       ['index-changed', () => statusChanged(true)],
       [
@@ -156,7 +164,7 @@ export function App() {
   }, [expanded]);
 
   async function launch(entry: Entry) {
-    if (launchingRef.current || pending) return;
+    if (launchingRef.current || draggingRef.current || pending) return;
     launchingRef.current = true;
     setLaunching(true);
     setError('');
@@ -218,7 +226,26 @@ export function App() {
         aria-selected={index === selected}
         className={`result ${featured ? 'featured' : ''} ${index === selected ? 'selected' : ''}`}
         onMouseMove={() => setSelected(index)}
-        onClick={() => void launch(entry)}
+        draggable={entry.kind !== 'app' && !pending && !launching}
+        title={entry.kind !== 'app' ? 'Drag to another app or browser to use this item' : undefined}
+        onMouseDown={() => {
+          suppressClick.current = false;
+        }}
+        onDragStart={(event) => {
+          event.preventDefault();
+          if (entry.kind === 'app' || pending || launchingRef.current || draggingRef.current)
+            return;
+          suppressClick.current = true;
+          draggingRef.current = true;
+          setError('');
+          void api.startDrag(entry.id).catch((error) => {
+            draggingRef.current = false;
+            setError(String(error));
+          });
+        }}
+        onClick={() => {
+          if (!suppressClick.current) void launch(entry);
+        }}
       >
         <ResultIcon entry={entry} revision={revision} />
         <div className="result-text">

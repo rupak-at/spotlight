@@ -1,3 +1,4 @@
+mod drag;
 mod icons;
 mod linux;
 mod state;
@@ -183,9 +184,11 @@ fn quit(app: tauri::AppHandle) {
 
 fn main() {
     tauri::Builder::default()
+        .manage(drag::DragState::default())
         .plugin(tauri_plugin_single_instance::init(|app, _, _| toggle(app)))
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
+                drag::setup(&window)?;
                 // WebKitGTK's natural request is 200 px high. Let the native
                 // window follow the compact 96 px launcher size instead.
                 window.with_webview(|webview| webview.inner().set_size_request(1, 1))?;
@@ -239,7 +242,7 @@ fn main() {
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event { api.prevent_close(); let _ = window.hide(); }
         })
-        .invoke_handler(tauri::generate_handler![search, get_settings, get_status, get_icon, set_launcher_expanded, save_settings, refresh_index, launch, hide_window, quit])
+        .invoke_handler(tauri::generate_handler![search, get_settings, get_status, get_icon, set_launcher_expanded, save_settings, refresh_index, launch, drag::start_file_drag, hide_window, quit])
         .run(tauri::generate_context!())
         .expect("Could not start Spotlight. Run from a terminal to inspect desktop or WebKitGTK errors.");
 }

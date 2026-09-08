@@ -26,6 +26,12 @@ Application icons come from Ubuntu's installed desktop entries and icon theme. F
 
 Apps launch through GIO desktop entries. Files open in their default associated application, and folders open in your file manager. If an item was deleted or moved, refresh and search again; an opening error leaves the launcher visible.
 
+## Drag results into another app
+
+In the desktop app, search for a file or folder, then hold the left mouse button on its result row and drag it onto the destination. For browser uploads, drop onto the website’s file upload area. The destination decides which file types it accepts; folder support depends on the app or website. Drag one result at a time. Application results cannot be dragged. Native GTK transfers and Chromium uploads have been verified on X11. A standalone WebKitGTK target did not expose the drop as an uploadable file; Firefox and Wayland transfers remain unverified.
+
+Spotlight offers a copy operation and leaves the original in place. A drag does not open the result. Release over an unsupported destination or press Escape during the native drag to cancel. Click or press Enter to open results normally afterward. Dragging is temporarily disabled while search results are being replaced. Removed files and files outside the current search folders produce an error. Browser-only preview cannot transfer real local files; use `npm run desktop`.
+
 ## Choose what gets indexed
 
 Open the sliders button in the footer, then **Search & indexing**:

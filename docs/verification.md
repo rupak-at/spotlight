@@ -5,7 +5,7 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 ## Completed
 
 - Eight Rust tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, and SQLite rollback. The full linked workspace test command passes.
-- Five frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, initial and post-Settings input focus, keyboard navigation, launching the selected ID, filtering, and immediate Escape dismissal from both search and settings.
+- Seven frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, initial and post-Settings input focus, keyboard navigation, launching the selected ID, filtering, immediate Escape dismissal from both search and settings, native drag requests, suppression of post-drag opening, stale/app drag rejection, and drag errors.
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
@@ -25,6 +25,20 @@ The release binary was run inside the Ubuntu X11 desktop using isolated XDG conf
 - Enter opening the temporary fixture folder in Files and launching Calculator through GIO; Spotlight hid after successful opening.
 
 Super+Space itself was not reassigned on the host, because GNOME reserves it for input-source switching. Follow [installation](installation.md) to configure it. `.deb` contents were inspected for the executable, desktop entry, icons, license metadata, and runtime dependencies; installation on a clean machine remains untested. The tag-triggered GitHub Release workflow is configured locally; its first remote run must still be observed.
+
+## Outbound drag checks
+
+The new drag integration was tested with the desktop build in an isolated X11 virtual display and a separate GTK drop target. A real pointer drag transferred the expected `text/uri-list` file URI, including correct encoding of spaces, `#`, and accented characters in the filename. A separate Chromium window running a local upload page received the matching `File` object and read its expected contents. Chromium used a temporary profile and `--no-sandbox` for this isolated local-page test because the host blocks its user namespaces.
+
+A standalone WebKitGTK upload page received URI/HTML data but an empty `FileList`; file upload compatibility with that target remains unresolved. Firefox and Wayland drag transfers were not verified.
+
+Manual regression steps:
+
+1. Run `npm run desktop`, search for a file, and drag its row into a file manager or an accepting browser upload area. Confirm the original remains and the destination receives the file.
+2. Repeat with a folder in a destination that supports folders.
+3. Cancel a drag with Escape or release outside an accepting target, then drag again and click/Enter to open normally.
+4. Rename or remove a result before dragging; confirm an error instead of a transfer. Change the query and immediately try dragging a pending result; confirm no old file is transferred.
+5. Verify application rows cannot be dragged. Repeat native checks on Wayland and in the browsers you use; destination support varies.
 
 ## Search measurements
 

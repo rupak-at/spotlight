@@ -58,6 +58,10 @@ const samples: Entry[] = [
 ];
 let currentPreviewSettings = { ...previewSettings };
 export const api = {
+  startDrag: (id: string) =>
+    desktop
+      ? invoke<void>('start_file_drag', { id })
+      : Promise.reject(new Error('File dragging requires the desktop app. Run npm run desktop.')),
   icon: (id: string) =>
     desktop ? invoke<string | null>('get_icon', { id }) : Promise.resolve(null),
   settings: () =>

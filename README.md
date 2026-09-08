@@ -10,6 +10,7 @@ The Rust engine owns file discovery, ranking, and the SQLite index. The desktop 
 
 - Installed application discovery through GIO, including desktop entries exported by Snap and Flatpak.
 - Case-insensitive filename/folder search with exact, prefix, substring, and subsequence ranking.
+- Drag file and folder search results into other apps, file managers, and browser upload areas that accept them.
 - Arrow-key navigation, Enter to open, Escape to hide immediately, Ctrl+, for settings, and Ctrl+Tab for result filters.
 - A single resident process with an X11 global shortcut and a `--toggle` entry point for GNOME shortcuts.
 - Background indexing, a transactional SQLite cache, and coalesced filesystem change notifications.
