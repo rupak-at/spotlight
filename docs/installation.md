@@ -4,7 +4,7 @@ Spotlight is a local desktop application for Ubuntu 24.04, built with Tauri, Rus
 
 ## Install a published package
 
-Open the [latest GitHub Release](https://github.com/rupak-at/spotlight/releases/latest) and download the `.deb` asset. Releases currently provide an x86_64 package built on Ubuntu 24.04, named like `Spotlight_0.1.0_amd64.deb`.
+Open the [latest GitHub Release](https://github.com/rupak-at/spotlight/releases/latest) and download the `.deb` asset. Releases currently provide an x86_64 package built on Ubuntu 24.04, named like `Spotlight_0.2.0_amd64.deb`.
 
 From the folder containing the downloaded package:
 
@@ -78,8 +78,8 @@ git push origin main
 Create and push an annotated tag that exactly matches the application version:
 
 ```sh
-git tag -a v0.1.0 -m "Spotlight v0.1.0"
-git push origin v0.1.0
+git tag -a v0.2.0 -m "Spotlight v0.2.0"
+git push origin v0.2.0
 ```
 
 The `Release` GitHub Actions workflow rejects a mismatched tag, runs the frontend checks, builds the `.deb` on Ubuntu 24.04 amd64, and creates a public GitHub Release. Follow the workflow in the repository's **Actions** tab. When it succeeds, verify the release page and install its downloaded asset on a clean supported machine. A regular branch push runs CI but does not publish a package.

@@ -91,7 +91,7 @@ The package command builds `target/release/spotlight` and a `.deb` under `target
 
 `npm run release:check` verifies that `package.json`, the root of `package-lock.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` use one version. When given a tag, it also requires the exact `v<version>` form. CI runs this check on every branch.
 
-For a release, update those versions and refresh both lockfiles as needed. Commit and push the verified change, then push an annotated tag such as `v0.1.0`. The tag starts `.github/workflows/release.yml`, which checks the tag, builds on Ubuntu 24.04 amd64 with `tauri-apps/tauri-action`, and creates a public GitHub Release containing the `.deb`. Exact maintainer commands and end-user installation steps are in [installation](installation.md).
+For a release, update those versions and refresh both lockfiles as needed. Commit and push the verified change, then push an annotated tag such as `v0.2.0`. The tag starts `.github/workflows/release.yml`, which checks the tag, builds on Ubuntu 24.04 amd64 with `tauri-apps/tauri-action`, and creates a public GitHub Release containing the `.deb`. Exact maintainer commands and end-user installation steps are in [installation](installation.md).
 
 ## Update the application icon
 
