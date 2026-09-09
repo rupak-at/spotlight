@@ -219,14 +219,15 @@ export function SettingsPanel({
               {(
                 [
                   { key: 'result_limit', label: 'Results', min: 1, max: 100 },
-                  { key: 'max_depth', label: 'Folder depth', min: 1, max: 32 },
-                  { key: 'max_entries', label: 'Index limit', min: 100, max: 200000 },
+                  { key: 'max_depth', label: 'Folder depth', min: 0, max: 32 },
+                  { key: 'max_entries', label: 'Index limit', min: 0, max: 200000 },
                 ] as const
               ).map((item) => (
                 <label key={item.key}>
                   {item.label}
                   <input
                     type="number"
+                    aria-label={item.label}
                     min={item.min}
                     max={item.max}
                     value={draft[item.key]}
@@ -235,6 +236,10 @@ export function SettingsPanel({
                 </label>
               ))}
             </div>
+            <p className="settings-note">
+              Set Folder depth and Index limit to 0 for no limit. Hidden items and excluded names
+              still apply. Larger indexes take more time and memory.
+            </p>
             <div className="index-info">
               <div>
                 <strong>{status?.total.toLocaleString() ?? '—'} items indexed</strong>
@@ -252,6 +257,13 @@ export function SettingsPanel({
                 <RefreshCw size={14} /> Refresh
               </button>
             </div>
+            {status?.warnings.length ? (
+              <div className="settings-note" role="status">
+                {status.warnings.map((warning, index) => (
+                  <p key={index}>{warning}</p>
+                ))}
+              </div>
+            ) : null}
           </>
         )}
         {error && (

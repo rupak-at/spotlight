@@ -4,8 +4,8 @@ Environment: Ubuntu 24.04.4, GNOME on X11, x86_64, Rust 1.94.0, Node.js 25.9.0. 
 
 ## Completed
 
-- Eight Rust tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, and SQLite rollback. The full linked workspace test command passes.
-- Seven frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, initial and post-Settings input focus, keyboard navigation, launching the selected ID, filtering, immediate Escape dismissal from both search and settings, native drag requests, suppression of post-drag opening, stale/app drag rejection, and drag errors.
+- Nine Rust tests for ranking, filters, Unicode, bounded results, traversal exclusions, overlapping roots, symlink escapes, configuration, unavailable saved roots, SQLite rollback, and unlimited scanning past a crowded early folder and beyond 32 levels while preserving exclusions. The full linked workspace test command passes.
+- Eight frontend tests covering atomic replacement and late asynchronous replies, no empty-query search/suggestions, errors, initial and post-Settings input focus, keyboard navigation, launching the selected ID, filtering, immediate Escape dismissal from both search and settings, native drag requests, suppression of post-drag opening, stale/app drag rejection, drag errors, saving unlimited scan limits without changing exclusions, and index notices in Settings.
 - TypeScript checks and optimized frontend build.
 - Native desktop compile check and workspace Clippy with warnings denied.
 - Prettier/rustfmt checks and ESLint pass. The staged-file formatting hook ran successfully during real commits.
@@ -25,6 +25,16 @@ The release binary was run inside the Ubuntu X11 desktop using isolated XDG conf
 - Enter opening the temporary fixture folder in Files and launching Calculator through GIO; Spotlight hid after successful opening.
 
 The original native checks did not reassign Super+Space. A later GNOME X11 diagnostic, after the input-source shortcut had been reassigned, found that right Super+Space opened the installed launcher on its first press while left Super+Space did not. Temporarily setting `org.gnome.mutter overlay-key` to an empty string made left Super+Space open and focus it on the first press; the original `Super_L` value was restored after the test. This isolates the standalone Activities binding as an additional conflict on this host. Follow [installation](installation.md) for the opt-in setup and its effect on Super alone. `.deb` contents were inspected for the executable, desktop entry, icons, license metadata, and runtime dependencies; installation on a clean machine remains untested. The tag-triggered GitHub Release workflow is configured locally; its first remote run must still be observed.
+
+## Whole-home indexing
+
+The affected home-folder cache contained exactly 50,000 filesystem entries: the home root plus 49,999 Android SDK items. Alphabetical traversal reached the configured item cap before other top-level folders. A metadata-only inventory with hidden/generated exclusions retained found roughly 91,831 items and directory depth 17, exceeding both defaults (50,000 items and depth 12).
+
+With the new release binary running and backward-compatible saved limits of 200,000 items / 32 levels, the cache contained 91,834 filesystem entries spanning 43 top-level items/folders, including 1,129 Documents items, 498 Downloads items, and 10,144 project items. Counts vary as files change. The regression suite separately validates 0/unlimited size and depth, including configuration round trips. Default limits and exclusions remain unchanged for other users.
+
+A temporary fixture directory was confirmed absent from the process’s inotify watches. A file created there appeared in the SQLite index automatically after 10 seconds (the next scheduled scan), and its deletion was reflected after 62 seconds. The fixture was removed after testing.
+
+The updated `.deb` was built locally. Replacing the system-installed executable requires administrator authentication; running the new repository binary is separate from installing the package. Do not set unlimited values in an older installed build, which rejects 0; install the update first.
 
 ## Outbound drag checks
 

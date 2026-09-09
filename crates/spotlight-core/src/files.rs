@@ -45,7 +45,11 @@ pub fn scan(settings: &Settings, cancelled: impl Fn() -> bool) -> Scan {
     'roots: for root in roots {
         let walker = WalkDir::new(&root)
             .follow_links(false)
-            .max_depth(settings.max_depth)
+            .max_depth(if settings.max_depth == 0 {
+                usize::MAX
+            } else {
+                settings.max_depth
+            })
             .sort_by_file_name()
             .into_iter()
             .filter_entry(|entry| {
@@ -77,13 +81,13 @@ pub fn scan(settings: &Settings, cancelled: impl Fn() -> bool) -> Scan {
             if !seen.insert(item.path().to_path_buf()) {
                 continue;
             }
-            if scan.entries.len() >= settings.max_entries {
+            if settings.max_entries != 0 && scan.entries.len() >= settings.max_entries {
                 scan.truncated = true;
                 break 'roots;
             }
             if item.file_type().is_dir() {
                 scan.directories.push(item.path().to_path_buf());
-                if item.depth() == settings.max_depth {
+                if settings.max_depth != 0 && item.depth() == settings.max_depth {
                     scan.truncated = true;
                 }
             }

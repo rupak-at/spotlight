@@ -70,11 +70,11 @@ impl Settings {
         if !(1..=100).contains(&self.result_limit) {
             return Err("Result limit must be between 1 and 100.".into());
         }
-        if !(100..=200_000).contains(&self.max_entries) {
-            return Err("Index limit must be between 100 and 200,000.".into());
+        if self.max_entries != 0 && !(100..=200_000).contains(&self.max_entries) {
+            return Err("Index limit must be 0 (unlimited) or between 100 and 200,000.".into());
         }
-        if !(1..=32).contains(&self.max_depth) {
-            return Err("Search depth must be between 1 and 32.".into());
+        if self.max_depth > 32 {
+            return Err("Search depth must be 0 (unlimited) or between 1 and 32.".into());
         }
         if !["dark", "light", "system"].contains(&self.theme.as_str()) {
             return Err("Unknown theme.".into());

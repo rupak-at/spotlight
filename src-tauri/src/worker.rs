@@ -6,7 +6,7 @@ use std::{
     path::PathBuf,
     sync::{
         atomic::Ordering,
-        mpsc::{Receiver, SyncSender},
+        mpsc::{Receiver, RecvTimeoutError, SyncSender},
         Arc,
     },
     time::{Duration, Instant},
@@ -49,7 +49,16 @@ pub fn start(app: AppHandle, receiver: Receiver<()>) {
             }
             Err(error) => startup_warnings.push(format!("Index cache could not be read: {error}")),
         }
-        while receiver.recv().is_ok() {
+        let mut poll_unwatched = false;
+        loop {
+            let request = if poll_unwatched {
+                receiver.recv_timeout(Duration::from_secs(60))
+            } else {
+                receiver.recv().map_err(|_| RecvTimeoutError::Disconnected)
+            };
+            if matches!(request, Err(RecvTimeoutError::Disconnected)) {
+                break;
+            }
             let start = Instant::now();
             let (settings, revision) = {
                 let settings = state.settings.read().unwrap();
@@ -69,14 +78,18 @@ pub fn start(app: AppHandle, receiver: Receiver<()>) {
             if scan.truncated {
                 scan.warnings.push("Some items were skipped at your index size or depth limit. Adjust limits or choose smaller search folders.".into());
             }
-            let desired: HashSet<_> = scan
+            let directories: HashSet<_> = scan
                 .directories
                 .into_iter()
                 .chain(linux::application_dirs())
-                .take(8192)
                 .collect();
-            if desired.len() == 8192 {
-                scan.warnings.push("Live watching is limited to 8,192 directories. Use Refresh for changes beyond that limit.".into());
+            poll_unwatched = directories.len() > 8192;
+            // Stable ordering avoids replacing arbitrary watches on every scan.
+            let mut directories: Vec<_> = directories.into_iter().collect();
+            directories.sort();
+            let desired: HashSet<_> = directories.into_iter().take(8192).collect();
+            if poll_unwatched {
+                scan.warnings.push("Live watching is limited to 8,192 directories. Other folders are refreshed by a full rescan after 60 seconds without a refresh request, or with Refresh.".into());
             }
             match &mut watcher {
                 Ok(watcher) => {
@@ -93,12 +106,14 @@ pub fn start(app: AppHandle, receiver: Receiver<()>) {
                         }
                     }
                     if failures > 0 {
-                        scan.warnings.push(format!("Live watching could not cover {failures} directories. Use Refresh after changes there."));
+                        poll_unwatched = true;
+                        scan.warnings.push(format!("Live watching could not cover {failures} directories. A full rescan runs after 60 seconds without a refresh request; Refresh also works."));
                     }
                 }
-                Err(error) => scan.warnings.push(format!(
-                    "Live watching unavailable: {error}. Use Refresh after changes."
-                )),
+                Err(error) => {
+                    poll_unwatched = true;
+                    scan.warnings.push(format!("Live watching unavailable: {error}. A full rescan runs after 60 seconds without a refresh request; Refresh also works."));
+                }
             }
             if let Err(error) =
                 repository::replace(&state.cache_path, &settings.index_key(), &entries)

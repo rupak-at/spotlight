@@ -40,8 +40,10 @@ Open the sliders button in the footer, then **Search & indexing**:
 - **Excluded names:** comma-separated names such as `node_modules, target, dist`. These exclusions apply during traversal.
 - **Include hidden items:** allow dotfiles/dotfolders except explicit exclusions.
 - **Results:** maximum returned matches, from 1 to 100.
-- **Folder depth:** recursion depth from 1 to 32; the default is 12.
-- **Index limit:** maximum indexed files/folders, from 100 to 200,000; the default is 50,000. Installed applications are added separately.
+- **Folder depth:** recursion depth from 1 to 32; the default is 12. Set **0** for no depth limit.
+- **Index limit:** maximum indexed files/folders, from 100 to 200,000; the default is 50,000. Set **0** for no item limit. Installed applications are added separately.
+
+For all normal files under `/home/you`, add that root and set both limits to **0**, keeping **Include hidden items** off and the default exclusions. A root does not override these limits: a large alphabetically earlier folder can consume the item budget before later folders are scanned. Index notices are also shown in Search & indexing. Unlimited scanning uses more memory and takes longer; inaccessible items and symlinks remain skipped.
 
 Click **Save changes** to apply. Invalid or unavailable newly entered roots produce an error. A saved root that later becomes unavailable stays in your configuration and is reported as unavailable on startup.
 
@@ -57,9 +59,9 @@ The native window starts at 680×96 and expands to 680×460 for results or Setti
 
 ## Refresh and indexing notices
 
-The rotating-arrow button requests a refresh. A background worker also watches discovered directories for changes. It rebuilds one bounded snapshot at a time while searches continue using the previous snapshot. Changing search folders clears the old snapshot so removed roots are no longer offered.
+The rotating-arrow button requests a refresh. A background worker also watches discovered directories for changes. It rebuilds one snapshot at a time while searches continue using the previous snapshot. Changing search folders clears the old snapshot so removed roots are no longer offered.
 
-Live watching covers up to 8,192 directories. Large trees, inaccessible folders, size/depth limits, and watcher failures produce a notice. Open **View details**, adjust search roots/limits if needed, and use Refresh for changes outside live coverage.
+Live watching covers up to 8,192 directories. Large trees, inaccessible folders, size/depth limits, and watcher failures produce a notice. Open **View details** or Search & indexing to inspect notices. If watch coverage is incomplete, a full rescan starts after 60 seconds without a refresh request; allow additional time for that scan to finish. Use Refresh for an immediate request. Item and depth limits still apply to every rescan.
 
 Shortcut notices explain GNOME binding conflicts or Wayland setup. The launcher does not silently reassign your desktop shortcuts.
 

@@ -83,7 +83,7 @@ Remove that copied desktop file to disable autostart. Autostart and GNOME shortc
 
 ## Customize and develop
 
-Open settings with the sliders button or Ctrl+,. Search roots use absolute paths. The initial roots are existing Desktop, Documents, Downloads, Pictures, and `projects` directories under your home folder. Remove all roots for app-only search. Hidden files, dependency directories, and build output are skipped by default; symlinks are not followed. Search matches names and paths, not file contents.
+Open settings with the sliders button or Ctrl+,. Search roots use absolute paths. The initial roots are existing Desktop, Documents, Downloads, Pictures, and `projects` directories under your home folder. Remove all roots for app-only search. For an entire home-folder scan, set **Index limit** and **Folder depth** to **0 (no limit)** in Search & indexing. Adding a root alone does not override the default 50,000-item and 12-level limits. Larger indexes use more memory and take longer to scan. Hidden files, dependency directories, and build output are skipped by default; symlinks are not followed. Search matches names and paths, not file contents.
 
 Settings live in `$XDG_CONFIG_HOME/io.github.rupak.spotlight/settings.json` (normally `~/.config/...`). The disposable SQLite cache lives in `$XDG_CACHE_HOME/io.github.rupak.spotlight/index.sqlite3` (normally `~/.cache/...`). Stop the app before editing settings manually or removing a cache. Changes saved through the UI apply immediately.
 
@@ -112,7 +112,7 @@ cargo run --release -p spotlight-core --example benchmark
 
 Build the frontend before workspace Rust tests because the desktop host embeds frontend assets. Core-only tests do not require a display or frontend: `cargo test -p spotlight-core`.
 
-Live updates currently rebuild the bounded snapshot after relevant changes; they do not perform per-file database updates. At most 8,192 directories are watched. Very large or frequently changing trees should use narrower roots/exclusions; notices identify partial coverage. The Refresh button also rescans apps and files.
+Live updates rebuild the snapshot after relevant changes; they do not perform per-file database updates. At most 8,192 directories are watched. When watch coverage is incomplete, a full rescan starts after 60 seconds without a refresh request, so unwatched folders are refreshed too. Scan time is additional. Very large or frequently changing trees should use narrower roots/exclusions; notices identify partial coverage. The Refresh button also rescans apps and files.
 
 ## Development workflow
 

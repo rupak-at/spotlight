@@ -191,3 +191,53 @@ fn search_fifty_thousand_entries() {
     assert!(response.results.len() <= 30);
     eprintln!("50,000 entries, query wall time: {:?}", start.elapsed());
 }
+
+#[test]
+fn unlimited_scan_reaches_later_folders_and_deep_files_without_changing_exclusions() {
+    let dir = tempfile::tempdir().unwrap();
+    let first = dir.path().join("a-large-folder");
+    fs::create_dir(&first).unwrap();
+    for i in 0..110 {
+        fs::write(first.join(format!("file-{i}")), "").unwrap();
+    }
+    let later = dir.path().join("z-documents");
+    let mut deep = later.clone();
+    for _ in 0..35 {
+        deep = deep.join("nested");
+    }
+    fs::create_dir_all(&deep).unwrap();
+    fs::write(deep.join("deep-note.txt"), "").unwrap();
+    for excluded in [".hidden", "node_modules"] {
+        fs::create_dir(dir.path().join(excluded)).unwrap();
+        fs::write(dir.path().join(excluded).join("skip.txt"), "").unwrap();
+    }
+    let settings = Settings {
+        roots: vec![dir.path().display().to_string()],
+        max_entries: 100,
+        ..Settings::default()
+    };
+    let limited = files::scan(&settings, || false);
+    assert!(limited.truncated);
+    assert!(!limited
+        .entries
+        .iter()
+        .any(|entry| entry.name == "z-documents"));
+    let settings = Settings {
+        max_entries: 0,
+        max_depth: 0,
+        ..settings
+    };
+    settings.validate().unwrap();
+    let scan = files::scan(&settings, || false);
+    assert!(!scan.truncated);
+    assert!(scan
+        .entries
+        .iter()
+        .any(|entry| entry.name == "deep-note.txt"));
+    assert!(!scan.entries.iter().any(|entry| entry.name == "skip.txt"));
+    let config_path = dir.path().join("settings.json");
+    config::save(&config_path, &settings).unwrap();
+    assert_eq!(config::load(&config_path).unwrap(), settings);
+    let cancelled = files::scan(&settings, || true);
+    assert!(cancelled.entries.is_empty());
+}
