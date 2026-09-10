@@ -88,9 +88,20 @@ async fn search(
     let state = app.state::<AppState>();
     let index = state.index.read().unwrap().clone();
     let limit = state.settings.read().unwrap().result_limit;
-    tauri::async_runtime::spawn_blocking(move || index.search(&query, kind, limit))
+    let discover = query.trim().chars().count() >= 3 && kind != Some(Kind::App);
+    let response = tauri::async_runtime::spawn_blocking(move || index.search(&query, kind, limit))
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    if discover && response.results.is_empty() {
+        let mut last = state.last_discovery.lock().unwrap();
+        state::request_discovery(
+            &mut last,
+            &state.refresh,
+            state.status.lock().unwrap().indexing,
+            Instant::now(),
+        );
+    }
+    Ok(response)
 }
 
 #[tauri::command]
@@ -208,6 +219,7 @@ fn main() {
             let wayland = session == "wayland" || std::env::var_os("WAYLAND_DISPLAY").is_some();
             app.manage(AppState {
                 icons: Mutex::new(HashMap::new()),
+                last_discovery: Mutex::new(None),
                 index: RwLock::new(Arc::new(Index::default())), settings: RwLock::new(settings.clone()),
                 status: Mutex::new(Status { indexing: true, session, warnings, ..Status::default() }),
                 revision: AtomicU64::new(0), shortcut_ready: AtomicBool::new(false), refresh: sender.clone(), config_path, cache_path,

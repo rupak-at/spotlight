@@ -71,3 +71,11 @@ Core tests cover ranking, filtering, Unicode, traversal exclusions, root validat
 Measure warm query latency against a 50,000-entry synthetic index and record the environment and build profile; do not substitute that for real filesystem benchmarks. Before a production release, measure p50/p95 query and show-to-focus latency, startup time, idle RSS/CPU, index time and memory, and battery impact on supported hardware.
 
 Remaining release gates include sustained filesystem churn, multiple monitors/scaling, input methods and accessibility, Wayland focus and shortcut testing, upgrade/migration and corrupt-cache recovery, and packaged `.deb` installation tests. Extensions, file-content search, and million-file indexing are later features, not claims of the first version.
+
+## File sizes and search discovery
+
+File results display their last indexed size in bytes or binary units (KiB, MiB, GiB). The exact byte count is available on hover. Sizes update on index refresh; unavailable metadata and older cache entries omit the size until a successful scan. Application and folder rows do not show sizes; folder contents are not recursively summed.
+
+Search returns cached matches immediately. A query of at least three characters with no matches in All, Files, or Folders can request a background refresh. Discovery uses the existing serial worker and bounded request queue, with at most one automatic request per 60 seconds and no requests while indexing. Every completed scan restarts that cooldown, preventing the automatic result retry from causing another scan. Newly discovered entries are cached and the current search updates automatically.
+
+Discovery rescans only configured search folders and refreshes installed applications. It respects hidden-file exclusions, excluded names, symlink rules, and configured entry/depth limits; it does not expand those limits or search outside your roots. This is a throttled full refresh, not incremental traversal. If limits omit an item, adjust them or select a smaller search folder in Settings. Explicit Refresh remains available during the cooldown.

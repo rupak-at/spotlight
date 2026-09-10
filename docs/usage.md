@@ -72,3 +72,11 @@ Settings are saved in `~/.config/io.github.rupak.spotlight/settings.json` and th
 Stop Spotlight before manually editing settings or removing the cache. A missing cache is rebuilt at the next start. A malformed settings file produces a notice and temporary defaults; the original file is preserved until settings are explicitly saved.
 
 For autostart, upgrades, removal, and troubleshooting, see [installation](installation.md). For source changes, see [development](development.md).
+
+## File sizes and search discovery
+
+File results display their last indexed size in bytes or binary units (KiB, MiB, GiB). The exact byte count is available on hover. Sizes update on index refresh; unavailable metadata and older cache entries omit the size until a successful scan. Application and folder rows do not show sizes; folder contents are not recursively summed.
+
+Search returns cached matches immediately. A query of at least three characters with no matches in All, Files, or Folders can request a background refresh. Discovery uses the existing serial worker and bounded request queue, with at most one automatic request per 60 seconds and no requests while indexing. Every completed scan restarts that cooldown, preventing the automatic result retry from causing another scan. Newly discovered entries are cached and the current search updates automatically.
+
+Discovery rescans only configured search folders and refreshes installed applications. It respects hidden-file exclusions, excluded names, symlink rules, and configured entry/depth limits; it does not expand those limits or search outside your roots. This is a throttled full refresh, not incremental traversal. If limits omit an item, adjust them or select a smaller search folder in Settings. Explicit Refresh remains available during the cooldown.

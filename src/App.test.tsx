@@ -35,6 +35,7 @@ it('filters files and opens settings from the keyboard', async () => {
   fireEvent.keyDown(input, { key: 'Tab', ctrlKey: true });
   await waitFor(() => expect(screen.getAllByRole('option').length).toBe(1));
   expect(screen.getByText('architecture.md')).toBeTruthy();
+  expect(screen.getByText('3.5 KiB').getAttribute('title')).toBe('3,584 bytes');
   fireEvent.keyDown(screen.getByRole('combobox'), { key: ',', ctrlKey: true });
   expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
   fireEvent.keyDown(screen.getByLabelText('Accent color'), { key: 'Escape' });

@@ -127,6 +127,7 @@ pub fn start(app: AppHandle, receiver: Receiver<()>) {
             if state.revision.load(Ordering::SeqCst) != revision {
                 continue;
             }
+            *state.last_discovery.lock().unwrap() = Some(Instant::now());
             let total = entries.len();
             *state.index.write().unwrap() = Arc::new(Index::new(entries));
             state.icons.lock().unwrap().clear();

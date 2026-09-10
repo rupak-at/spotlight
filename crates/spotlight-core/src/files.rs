@@ -102,6 +102,11 @@ pub fn scan(settings: &Settings, cancelled: impl Fn() -> bool) -> Scan {
                     Kind::File
                 },
                 keywords: String::new(),
+                size_bytes: if item.file_type().is_file() {
+                    item.metadata().ok().map(|metadata| metadata.len())
+                } else {
+                    None
+                },
             });
         }
     }

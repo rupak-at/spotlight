@@ -16,6 +16,7 @@ fn main() {
             ),
             kind: Kind::File,
             keywords: String::new(),
+            size_bytes: None,
         })
         .collect();
     let start = Instant::now();

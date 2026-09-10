@@ -16,6 +16,8 @@ pub struct Entry {
     pub kind: Kind,
     #[serde(default)]
     pub keywords: String,
+    #[serde(default)]
+    pub size_bytes: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize)]

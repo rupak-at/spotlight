@@ -25,6 +25,7 @@ pub fn applications() -> Vec<Entry> {
                 name: app.display_name().to_string(),
                 path: id,
                 kind: Kind::App,
+                size_bytes: None,
                 keywords: format!(
                     "{} {}",
                     app.description().unwrap_or_default(),

@@ -14,6 +14,7 @@ fn entry(name: &str, kind: Kind) -> Entry {
         path: format!("/test/{name}"),
         kind,
         keywords: String::new(),
+        size_bytes: None,
     }
 }
 
@@ -240,4 +241,48 @@ fn unlimited_scan_reaches_later_folders_and_deep_files_without_changing_exclusio
     assert_eq!(config::load(&config_path).unwrap(), settings);
     let cancelled = files::scan(&settings, || true);
     assert!(cancelled.entries.is_empty());
+}
+
+#[test]
+fn refresh_discovers_new_files_and_updates_cached_sizes() {
+    let dir = tempfile::tempdir().unwrap();
+    let settings = Settings {
+        roots: vec![dir.path().display().to_string()],
+        ..Settings::default()
+    };
+    let initial = files::scan(&settings, || false);
+    assert!(Index::new(initial.entries)
+        .search("report", None, 30)
+        .results
+        .is_empty());
+    fs::write(dir.path().join("report.txt"), "hello").unwrap();
+    fs::write(dir.path().join(".report-secret"), "hidden").unwrap();
+    let scan = files::scan(&settings, || false);
+    assert!(scan
+        .entries
+        .iter()
+        .filter(|e| e.kind == Kind::Folder)
+        .all(|e| e.size_bytes.is_none()));
+    let cache = tempfile::tempdir().unwrap();
+    let db = cache.path().join("index.sqlite3");
+    repository::replace(&db, &settings.index_key(), &scan.entries).unwrap();
+    let index = Index::new(repository::load(&db, &settings.index_key()).unwrap());
+    let results = index.search("report", None, 30).results;
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].size_bytes, Some(5));
+    fs::write(dir.path().join("report.txt"), "").unwrap();
+    let index = Index::new(files::scan(&settings, || false).entries);
+    assert_eq!(
+        index.search("report", None, 30).results[0].size_bytes,
+        Some(0)
+    );
+}
+
+#[test]
+fn old_cache_entries_without_sizes_remain_readable() {
+    let entry: Entry = serde_json::from_str(
+        r#"{"id":"file","name":"old","path":"/old","kind":"file","keywords":""}"#,
+    )
+    .unwrap();
+    assert_eq!(entry.size_bytes, None);
 }

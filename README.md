@@ -128,3 +128,11 @@ Keep changes focused and commit every completed, verified logical change with a 
 - **SQLite:** a local, transactional metadata cache; no server or external account.
 
 Rust stays in a running process. Search does not start a CLI process or scan the disk for each keystroke. Python is optional for future user-authored actions, and is not a runtime dependency. React Native does not offer an advantage for this webview-based Ubuntu UI.
+
+## File sizes and search discovery
+
+File results display their last indexed size in bytes or binary units (KiB, MiB, GiB). The exact byte count is available on hover. Sizes update on index refresh; unavailable metadata and older cache entries omit the size until a successful scan. Application and folder rows do not show sizes; folder contents are not recursively summed.
+
+Search returns cached matches immediately. A query of at least three characters with no matches in All, Files, or Folders can request a background refresh. Discovery uses the existing serial worker and bounded request queue, with at most one automatic request per 60 seconds and no requests while indexing. Every completed scan restarts that cooldown, preventing the automatic result retry from causing another scan. Newly discovered entries are cached and the current search updates automatically.
+
+Discovery rescans only configured search folders and refreshes installed applications. It respects hidden-file exclusions, excluded names, symlink rules, and configured entry/depth limits; it does not expand those limits or search outside your roots. This is a throttled full refresh, not incremental traversal. If limits omit an item, adjust them or select a smaller search folder in Settings. Explicit Refresh remains available during the cooldown.

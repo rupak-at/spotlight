@@ -17,6 +17,7 @@ import { api, desktop } from './api';
 import { useSearch } from './useSearch';
 import { SettingsPanel } from './SettingsPanel';
 import { ResultIcon } from './ResultIcon';
+import { formatFileSize } from './fileSize';
 import type { Entry, Filter, Settings, Status } from './types';
 
 const filters: { key: Filter; label: string }[] = [
@@ -254,6 +255,11 @@ export function App() {
             {entry.kind === 'app' ? entry.keywords || entry.path : entry.path}
           </span>
         </div>
+        {entry.kind === 'file' && entry.size_bytes != null && (
+          <span className="result-kind" title={`${entry.size_bytes.toLocaleString()} bytes`}>
+            {formatFileSize(entry.size_bytes)}
+          </span>
+        )}
         {index === selected ? (
           <span className="result-action">
             <kbd>

@@ -6,6 +6,7 @@ export interface Entry {
   path: string;
   kind: Kind;
   keywords: string;
+  size_bytes?: number | null;
 }
 export interface SearchResponse {
   results: Entry[];

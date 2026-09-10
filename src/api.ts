@@ -51,6 +51,7 @@ const samples: Entry[] = [
   {
     id: 'p7',
     name: 'architecture.md',
+    size_bytes: 3584,
     path: '/home/you/projects/spotlight/docs/architecture.md',
     kind: 'file',
     keywords: '',
