@@ -58,7 +58,7 @@ GNOME reserves Super+Space for input-source switching by default. The applicatio
 ## Safety and reliability
 
 - The frontend requests launch by indexed ID. Rust resolves it against the current index; it does not accept arbitrary shell text.
-- Open paths through GIO's default application handler. Launch installed apps through their desktop IDs.
+- Open files through GIO's default application handler. Open directories with the session bus `org.freedesktop.FileManager1.ShowFolders` request and the validated directory URI; if unavailable or unsuccessful after a two-second call timeout, pass the directory as a GFile to the default `inode/directory` handler. Launch installed apps through their desktop IDs.
 - Revalidate file paths against active roots at launch time, including symlink resolution.
 - Keep IPC local and use a restrictive Content Security Policy. No remote page loading, telemetry, or hosted service.
 - Report malformed settings, database failures, inaccessible roots, watcher limits, and shortcut conflicts to the UI.

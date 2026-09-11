@@ -69,3 +69,9 @@ The query mix includes exact/prefix, subsequence, substring, multiple tokens, no
 This is a first working implementation, not a completed production release qualification. Wayland focus/shortcuts, packaged installation on a clean machine, multiple monitors/scaling, long-running filesystem churn, assistive technologies, and real-world memory/battery measurements remain release gates. See [architecture](architecture.md).
 
 Browser validation uses explicitly labeled sample data; it is not evidence that native file/app launching works. Synthetic engine benchmarks exclude IPC, rendering, window activation, and disk indexing.
+
+## Folder opening
+
+Folder results now send the validated directory URI to `FileManager1.ShowFolders`, with a GIO directory-handler fallback. `cargo test --workspace` passes all 14 Rust tests, including directory URI preservation for Downloads and paths containing spaces, Unicode, `#`, and `%`, and rejection of an unavailable directory. Workspace Clippy with warnings denied and ESLint pass.
+
+A live GNOME session accepted the Downloads `ShowFolders` request; after navigation completed, Nautilus's `OpenLocations` property included `file:///home/rupak/Downloads`. This verifies the desktop request separately from Spotlight. End-to-end keyboard opening in a rebuilt Spotlight binary and the fallback on a desktop without FileManager1 remain unverified.

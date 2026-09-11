@@ -24,7 +24,7 @@ Application icons come from Ubuntu's installed desktop entries and icon theme. F
 | Close button                             | Hide the window and keep Spotlight running |
 | Power button in the footer               | Quit Spotlight                             |
 
-Apps launch through GIO desktop entries. Files open in their default associated application, and folders open in your file manager. If an item was deleted or moved, refresh and search again; an opening error leaves the launcher visible.
+Apps launch through GIO desktop entries. Files open in their default associated application, and folders open inside the selected directory in your file manager (for example, choosing Downloads opens its contents). If an item was deleted or moved, refresh and search again; an opening error leaves the launcher visible.
 
 ## Drag results into another app
 

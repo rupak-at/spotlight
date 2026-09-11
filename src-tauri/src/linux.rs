@@ -65,11 +65,76 @@ pub fn launch(entry: &Entry, settings: &Settings) -> Result<()> {
             app.launch(&[], None::<&gio::AppLaunchContext>)
                 .map_err(|e| format!("Could not launch {}: {e}", entry.name))
         }
-        Kind::File | Kind::Folder => {
+        Kind::Folder => {
+            let path = allowed_path(Path::new(&entry.path), settings)?;
+            open_folder(&path).map_err(|e| format!("Could not open {}: {e}", entry.name))
+        }
+        Kind::File => {
             let path = allowed_path(Path::new(&entry.path), settings)?;
             let uri = gio::File::for_path(path).uri();
             gio::AppInfo::launch_default_for_uri(&uri, None::<&gio::AppLaunchContext>)
                 .map_err(|e| format!("Could not open {}: {e}", entry.name))
         }
+    }
+}
+
+// ShowFolders requests the directory contents, rather than selecting it in its parent.
+fn folder_parameters(path: &Path) -> gio::glib::Variant {
+    (vec![gio::File::for_path(path).uri().to_string()], "").to_variant()
+}
+
+fn open_folder(path: &Path) -> Result<()> {
+    if !path.is_dir() {
+        return Err("This folder is no longer available. Refresh the index.".into());
+    }
+    if let Ok(bus) = gio::bus_get_sync(gio::BusType::Session, None::<&gio::Cancellable>) {
+        if bus
+            .call_sync(
+                Some("org.freedesktop.FileManager1"),
+                "/org/freedesktop/FileManager1",
+                "org.freedesktop.FileManager1",
+                "ShowFolders",
+                Some(&folder_parameters(path)),
+                None,
+                gio::DBusCallFlags::NONE,
+                2000,
+                None::<&gio::Cancellable>,
+            )
+            .is_ok()
+        {
+            return Ok(());
+        }
+    }
+    // Desktops without FileManager1 still receive the exact folder as a GFile.
+    let app = gio::AppInfo::default_for_type("inode/directory", false)
+        .ok_or("No default file manager is configured for folders.")?;
+    app.launch(&[gio::File::for_path(path)], None::<&gio::AppLaunchContext>)
+        .map_err(|error| error.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn folder_request_preserves_selected_directory_and_escapes_uri_characters() {
+        for path in ["/home/example/Downloads", "/home/example/Downloads/a b#c%é"] {
+            let parameters = folder_parameters(Path::new(path));
+            assert_eq!(parameters.type_().as_str(), "(ass)");
+            let (uris, startup_id) = parameters.get::<(Vec<String>, String)>().unwrap();
+            assert_eq!(uris.len(), 1);
+            assert!(startup_id.is_empty());
+            assert_eq!(
+                gio::File::for_uri(&uris[0]).path().unwrap(),
+                Path::new(path)
+            );
+            assert!(!uris[0].contains(' '));
+            assert!(!uris[0].contains('#'));
+        }
+    }
+
+    #[test]
+    fn missing_folder_is_rejected_before_contacting_file_manager() {
+        assert!(open_folder(Path::new("/proc/spotlight-nonexistent-folder")).is_err());
     }
 }
