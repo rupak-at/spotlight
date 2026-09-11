@@ -1,6 +1,7 @@
 use crate::Result;
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::HashMap,
     fs,
     path::{Path, PathBuf},
 };
@@ -8,6 +9,7 @@ use std::{
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
+    pub file_associations: HashMap<String, String>,
     pub roots: Vec<String>,
     pub excluded_names: Vec<String>,
     pub include_hidden: bool,
@@ -31,6 +33,7 @@ impl Default for Settings {
             .map(|p| p.to_string_lossy().into_owned())
             .collect();
         Self {
+            file_associations: HashMap::new(),
             roots,
             excluded_names: [
                 "node_modules",

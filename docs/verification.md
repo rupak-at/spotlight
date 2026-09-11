@@ -75,3 +75,10 @@ Browser validation uses explicitly labeled sample data; it is not evidence that 
 Folder results now send the validated directory URI to `FileManager1.ShowFolders`, with a GIO directory-handler fallback. `cargo test --workspace` passes all 14 Rust tests, including directory URI preservation for Downloads and paths containing spaces, Unicode, `#`, and `%`, and rejection of an unavailable directory. Workspace Clippy with warnings denied and ESLint pass.
 
 A live GNOME session accepted the Downloads `ShowFolders` request; after navigation completed, Nautilus's `OpenLocations` property included `file:///home/rupak/Downloads`. This verifies the desktop request separately from Spotlight. End-to-end keyboard opening in a rebuilt Spotlight binary and the fallback on a desktop without FileManager1 remain unverified.
+
+## File applications and Open with
+
+- Workspace Rust tests: 18 pass, plus one display-dependent chooser cancellation test run separately under Xvfb. Coverage includes development-file classification, extension-specific preferences, old-settings compatibility, persistence, and exact file arguments through desktop entries with and without file placeholders. The launch fixture includes spaces, Unicode, `#`, `%`, and shell-like characters.
+- Frontend: 11 tests pass, including normal Enter, Shift+Enter/Shift+click, duplicate and stale chooser suppression, non-file rejection, and opening errors.
+- TypeScript/production frontend build, workspace Clippy with warnings denied, ESLint, and formatting pass.
+- The isolated native GTK chooser cancellation check passes. End-to-end selection and remembering through the rebuilt Spotlight UI, and opening actual documents in Antigravity, a browser, and image viewers, remain unverified. Native launch acceptance does not guarantee that a third-party application successfully displays every format.

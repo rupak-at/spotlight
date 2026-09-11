@@ -14,6 +14,7 @@ export interface SearchResponse {
   total: number;
 }
 export interface Settings {
+  file_associations: Record<string, string>;
   roots: string[];
   excluded_names: string[];
   include_hidden: boolean;

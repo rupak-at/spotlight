@@ -58,7 +58,7 @@ GNOME reserves Super+Space for input-source switching by default. The applicatio
 ## Safety and reliability
 
 - The frontend requests launch by indexed ID. Rust resolves it against the current index; it does not accept arbitrary shell text.
-- Open files through GIO's default application handler. Open directories with the session bus `org.freedesktop.FileManager1.ShowFolders` request and the validated directory URI; if unavailable or unsuccessful after a two-second call timeout, pass the directory as a GFile to the default `inode/directory` handler. Launch installed apps through their desktop IDs.
+- Open files through the selected GIO application's file-list launch API. Open directories with the session bus `org.freedesktop.FileManager1.ShowFolders` request and the validated directory URI; if unavailable or unsuccessful after a two-second call timeout, pass the directory as a GFile to the default `inode/directory` handler. Launch installed apps through their desktop IDs.
 - Revalidate file paths against active roots at launch time, including symlink resolution.
 - Keep IPC local and use a restrictive Content Security Policy. No remote page loading, telemetry, or hosted service.
 - Report malformed settings, database failures, inaccessible roots, watcher limits, and shortcut conflicts to the UI.
@@ -79,3 +79,9 @@ File results display their last indexed size in bytes or binary units (KiB, MiB,
 Search returns cached matches immediately. A query of at least three characters with no matches in All, Files, or Folders can request a background refresh. Discovery uses the existing serial worker and bounded request queue, with at most one automatic request per 60 seconds and no requests while indexing. Every completed scan restarts that cooldown, preventing the automatic result retry from causing another scan. Newly discovered entries are cached and the current search updates automatically.
 
 Discovery rescans only configured search folders and refreshes installed applications. It respects hidden-file exclusions, excluded names, symlink rules, and configured entry/depth limits; it does not expand those limits or search outside your roots. This is a throttled full refresh, not incremental traversal. If limits omit an item, adjust them or select a smaller search folder in Settings. Explicit Refresh remains available during the cooldown.
+
+## File application selection
+
+`launch` accepts an indexed ID and optional `chooseApp` flag. File launches go through `src-tauri/src/file_open.rs`: canonical scope validation, a saved extension/MIME association, then the development-editor/PDF-browser/default-MIME policy. Other documents and images follow desktop MIME defaults. Applications receive a GFile list, avoiding generic file-URI routing. Desktop entries missing file placeholders are copied in memory with `%F` and D-Bus activation disabled for that copy, preserving desktop command parsing without invoking a shell or changing installed entries.
+
+Shift+Enter/Shift+click and missing handlers show a modal [GTK application chooser](https://docs.gtk.org/gtk3/class.AppChooserDialog.html) on the main thread. No settings/index lock is held during the dialog's nested event loop. Cancellation leaves Spotlight visible. Acceptance revalidates the path against current settings, launches the selected app, and optionally persists its desktop ID in `Settings.file_associations`. Keys use lowercase extensions or MIME types for extensionless files. Saving other settings preserves this map; associations do not affect the index key or modify OS defaults. Existing settings deserialize with an empty map. The frontend blocks duplicate launches, stale results, and launches during a drag.

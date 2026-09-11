@@ -164,13 +164,14 @@ export function App() {
     void api.resize(expanded).catch((error) => setError(String(error)));
   }, [expanded]);
 
-  async function launch(entry: Entry) {
+  async function launch(entry: Entry, chooseApp = false) {
     if (launchingRef.current || draggingRef.current || pending) return;
     launchingRef.current = true;
     setLaunching(true);
     setError('');
     try {
-      await api.launch(entry.id);
+      if (chooseApp) await api.launch(entry.id, true);
+      else await api.launch(entry.id);
     } catch (error) {
       setError(String(error));
     } finally {
@@ -204,7 +205,7 @@ export function App() {
         );
     } else if (event.key === 'Enter' && event.target === input.current && active) {
       event.preventDefault();
-      void launch(active);
+      if (!event.shiftKey || active.kind === 'file') void launch(active, event.shiftKey);
     } else if (event.key === 'Tab' && event.target === input.current && event.ctrlKey) {
       event.preventDefault();
       const i = filters.findIndex((f) => f.key === filter);
@@ -244,8 +245,9 @@ export function App() {
             setError(String(error));
           });
         }}
-        onClick={() => {
-          if (!suppressClick.current) void launch(entry);
+        onClick={(event) => {
+          if (!suppressClick.current && (!event.shiftKey || entry.kind === 'file'))
+            void launch(entry, event.shiftKey);
         }}
       >
         <ResultIcon entry={entry} revision={revision} />
@@ -485,6 +487,11 @@ export function App() {
                   </kbd>{' '}
                   {launching ? 'opening…' : 'open'}
                 </span>
+                {active?.kind === 'file' && (
+                  <span>
+                    <kbd>⇧ ↵</kbd> open with
+                  </span>
+                )}
               </div>
               <div className="footer-actions">
                 <span className="index-status" aria-live="polite">

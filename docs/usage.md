@@ -15,6 +15,7 @@ Application icons come from Ubuntu's installed desktop entries and icon theme. F
 | Super+Space, or your configured shortcut | Show/hide the launcher on X11              |
 | Up / Down                                | Move through results                       |
 | Enter in the search field                | Open the selected result                   |
+| Shift+Enter / Shift+click on a file      | Choose an application to open the file     |
 | Click a result                           | Open that result                           |
 | Escape, with or without a query          | Hide the launcher immediately              |
 | Ctrl+Tab / Ctrl+Shift+Tab in search      | Cycle grouped result types                 |
@@ -24,7 +25,24 @@ Application icons come from Ubuntu's installed desktop entries and icon theme. F
 | Close button                             | Hide the window and keep Spotlight running |
 | Power button in the footer               | Quit Spotlight                             |
 
-Apps launch through GIO desktop entries. Files open in their default associated application, and folders open inside the selected directory in your file manager (for example, choosing Downloads opens its contents). If an item was deleted or moved, refresh and search again; an opening error leaves the launcher visible.
+Apps launch through GIO desktop entries. Files open using the file-application rules below, and folders open inside the selected directory in your file manager (for example, choosing Downloads opens its contents). If an item was deleted or moved, refresh and search again; an opening error leaves the launcher visible.
+
+## File applications
+
+Enter or a click passes the selected file to an application, using this order:
+
+1. Your saved Spotlight choice for the file type.
+2. For common source/configuration files (`js`, `ts`, `py`, `rs`, `css`, HTML, JSON, Markdown, and others), Antigravity if installed, then VS Code/VSCodium.
+3. For PDFs, the default HTTPS browser if available.
+4. The desktop's default application for the file's MIME type. Photos use their associated image app; office documents such as DOCX use their associated document app.
+
+If none is available, the application chooser opens automatically. A launch error stays visible in Spotlight; use Shift+Enter to select another app. A removed saved app falls back to the rules above.
+
+**Shift+Enter** in the search field or **Shift+click** on a file opens the native **Open with** chooser, including other installed applications. Choose an app and confirm. Enable **Always use for this file type in Spotlight** to save your choice, or leave it unchecked to open once. Cancel/Escape returns to the search without opening the file. This shortcut applies to files only; Enter continues to open folders and launch apps normally.
+
+Saved choices are per case-insensitive extension, with MIME type used for extensionless files, and are stored in `file_associations` in Spotlight's settings. They do not alter Ubuntu's system-wide associations. Use the chooser again to replace a choice; to clear all choices, quit Spotlight and set `file_associations` to `{}` in its settings file. Saving unrelated Settings controls preserves these preferences.
+
+The selected file is checked again after choosing an app, so removed files and files outside the current search folders cannot be opened. Custom desktop entries without a file argument placeholder receive an in-memory copy with a file placeholder; the installed desktop entry is not edited. Browser preview cannot launch applications or show the native chooser.
 
 ## Drag results into another app
 

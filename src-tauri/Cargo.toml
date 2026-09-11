@@ -23,3 +23,6 @@ gtk = "0.18"
 gdkx11 = "0.18"
 base64 = "0.22"
 notify = "8"
+
+[dev-dependencies]
+tempfile = "3"

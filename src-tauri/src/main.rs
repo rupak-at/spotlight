@@ -1,4 +1,5 @@
 mod drag;
+mod file_open;
 mod icons;
 mod linux;
 mod state;
@@ -138,12 +139,13 @@ fn set_launcher_expanded(app: tauri::AppHandle, expanded: bool) -> Result<()> {
 }
 
 #[tauri::command]
-fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<Settings> {
+fn save_settings(app: tauri::AppHandle, mut settings: Settings) -> Result<Settings> {
     settings.validate()?;
     Shortcut::from_str(&settings.shortcut).map_err(|error| format!("Invalid shortcut: {error}"))?;
     let state = app.state::<AppState>();
     {
         let mut current = state.settings.write().unwrap();
+        settings.file_associations = current.file_associations.clone();
         config::save(&state.config_path, &settings)?;
         if current.index_key() != settings.index_key() {
             state.revision.fetch_add(1, Ordering::SeqCst);
@@ -166,9 +168,9 @@ fn refresh_index(state: tauri::State<AppState>) {
 }
 
 #[tauri::command]
-fn launch(app: tauri::AppHandle, id: String) -> Result<()> {
+fn launch(app: tauri::AppHandle, id: String, choose_app: Option<bool>) -> Result<()> {
     let state = app.state::<AppState>();
-    let settings = state.settings.read().unwrap();
+    let settings = state.settings.read().unwrap().clone();
     let entry = state
         .index
         .read()
@@ -176,7 +178,15 @@ fn launch(app: tauri::AppHandle, id: String) -> Result<()> {
         .get(&id)
         .cloned()
         .ok_or("This result is no longer indexed. Search again.")?;
-    linux::launch(&entry, &settings)?;
+    if entry.kind == Kind::File {
+        if !file_open::open(&app, &entry, choose_app.unwrap_or(false))? {
+            return Ok(());
+        }
+    } else if choose_app.unwrap_or(false) {
+        return Err("Open with is available for files. Select a file first.".into());
+    } else {
+        linux::launch(&entry, &settings)?;
+    }
     hide_window(app.clone())
 }
 

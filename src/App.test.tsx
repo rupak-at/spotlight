@@ -91,3 +91,49 @@ it('blocks application and stale-result drags and reports native drag failures',
   await screen.findByText('Documents');
   expect(screen.getByRole('option').getAttribute('draggable')).toBe('true');
 });
+
+it('opens files normally and offers an application chooser with Shift+Enter or Shift+click', async () => {
+  const launch = vi.spyOn(api, 'launch').mockResolvedValue();
+  render(<App />);
+  const input = screen.getByRole('combobox');
+  fireEvent.change(input, { target: { value: 'architecture' } });
+  const row = await screen.findByRole('option');
+  expect(screen.getByText('open with')).toBeTruthy();
+  fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+  await waitFor(() => expect(launch).toHaveBeenLastCalledWith('p7', true));
+  await waitFor(() => expect(screen.queryByText('opening…')).toBeNull());
+  fireEvent.keyDown(input, { key: 'Enter' });
+  await waitFor(() => expect(launch).toHaveBeenLastCalledWith('p7'));
+  await waitFor(() => expect(screen.queryByText('opening…')).toBeNull());
+  fireEvent.click(row, { shiftKey: true });
+  await waitFor(() => expect(launch).toHaveBeenLastCalledWith('p7', true));
+});
+
+it('blocks duplicate and stale chooser requests and shows opening failures', async () => {
+  let rejectOpen!: (error: Error) => void;
+  const launch = vi.spyOn(api, 'launch').mockImplementation(
+    () =>
+      new Promise<void>((_, reject) => {
+        rejectOpen = reject;
+      }),
+  );
+  render(<App />);
+  const input = screen.getByRole('combobox');
+  fireEvent.change(input, { target: { value: 'architecture' } });
+  await screen.findByRole('option');
+  fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+  fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+  expect(launch).toHaveBeenCalledTimes(1);
+  rejectOpen(new Error('File unavailable'));
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Error: File unavailable');
+  fireEvent.change(input, { target: { value: 'documents' } });
+  fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+  expect(launch).toHaveBeenCalledTimes(1);
+  await screen.findByText('Documents');
+  fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+  expect(launch).toHaveBeenCalledTimes(1);
+  fireEvent.change(input, { target: { value: 'firefox' } });
+  await screen.findByText('Firefox');
+  fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+  expect(launch).toHaveBeenCalledTimes(1);
+});

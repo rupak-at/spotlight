@@ -4,6 +4,7 @@ import type { Entry, Filter, SearchResponse, Settings, Status } from './types';
 
 export const desktop = isTauri();
 const previewSettings: Settings = {
+  file_associations: {},
   roots: ['/home/you/Documents', '/home/you/projects'],
   excluded_names: ['node_modules', 'target', 'dist', '.git', '.cache', '.venv'],
   include_hidden: false,
@@ -101,9 +102,9 @@ export const api = {
     currentPreviewSettings = settings;
     return Promise.resolve(settings);
   },
-  launch: (id: string) =>
+  launch: (id: string, chooseApp = false) =>
     desktop
-      ? invoke<void>('launch', { id })
+      ? invoke<void>('launch', { id, chooseApp })
       : Promise.reject(
           new Error('This is a browser preview. Run npm run desktop to open apps and files.'),
         ),

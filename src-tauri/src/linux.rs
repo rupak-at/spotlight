@@ -69,12 +69,7 @@ pub fn launch(entry: &Entry, settings: &Settings) -> Result<()> {
             let path = allowed_path(Path::new(&entry.path), settings)?;
             open_folder(&path).map_err(|e| format!("Could not open {}: {e}", entry.name))
         }
-        Kind::File => {
-            let path = allowed_path(Path::new(&entry.path), settings)?;
-            let uri = gio::File::for_path(path).uri();
-            gio::AppInfo::launch_default_for_uri(&uri, None::<&gio::AppLaunchContext>)
-                .map_err(|e| format!("Could not open {}: {e}", entry.name))
-        }
+        Kind::File => Err("Files must use the file application handler.".into()),
     }
 }
 

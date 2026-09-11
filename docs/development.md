@@ -41,6 +41,12 @@ git commit -m "feat: describe the completed change"
 
 Choose checks relevant to the change; the list above is the complete verification set. `npm run build` runs TypeScript checks and builds frontend assets before the desktop host's linked workspace tests. For engine-only work, `cargo test -p spotlight-core` runs without a display or frontend build.
 
+The native application-chooser cancellation test requires a display and is ignored in the normal workspace run. With Xvfb installed, run it separately on an isolated display:
+
+```sh
+xvfb-run -a cargo test -p spotlight native_chooser_cancel -- --ignored --test-threads=1
+```
+
 `npm ci` runs the `prepare` script to enable Husky. Each commit runs lint-staged:
 
 - JavaScript/TypeScript: Prettier, then ESLint fixes/checks.

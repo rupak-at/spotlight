@@ -10,6 +10,7 @@ The Rust engine owns file discovery, ranking, and the SQLite index. The desktop 
 
 - Installed application discovery through GIO, including desktop entries exported by Snap and Flatpak.
 - Open folder results directly inside the selected directory in the file manager.
+- Open code files in Antigravity/VS Code, PDFs in the default browser, and other files in their associated apps. Shift+Enter opens an application chooser with optional saved choices per file type.
 - Case-insensitive filename/folder search with exact, prefix, substring, and subsequence ranking.
 - Drag file and folder search results into other apps, file managers, and browser upload areas that accept them.
 - Arrow-key navigation, Enter to open, Escape to hide immediately, Ctrl+, for settings, and Ctrl+Tab for result filters.
@@ -81,6 +82,12 @@ cp packaging/spotlight-autostart.desktop ~/.config/autostart/
 ```
 
 Remove that copied desktop file to disable autostart. Autostart and GNOME shortcut changes are opt-in setup steps.
+
+## Open files
+
+Press Enter or click a file to open it. Spotlight first uses your saved choice for that file type; otherwise, common development files use Antigravity, then VS Code/VSCodium if installed, PDFs use the default browser, and photos, office documents, and other files use their desktop associations. If no handler is available, Spotlight offers an application chooser.
+
+Press **Shift+Enter** on a file (or Shift+click it) to choose an application. Check **Always use for this file type in Spotlight** to remember it; leave it unchecked for a one-time choice. These choices do not change Ubuntu's defaults. Cancel returns to your search. See [usage](docs/usage.md#file-applications) for details.
 
 ## Customize and develop
 

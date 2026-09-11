@@ -286,3 +286,23 @@ fn old_cache_entries_without_sizes_remain_readable() {
     .unwrap();
     assert_eq!(entry.size_bytes, None);
 }
+
+#[test]
+fn file_associations_survive_settings_roundtrip_and_older_settings_load() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("settings.json");
+    let mut settings = Settings {
+        roots: vec![],
+        ..Settings::default()
+    };
+    settings
+        .file_associations
+        .insert("ext:py".into(), "code.desktop".into());
+    config::save(&path, &settings).unwrap();
+    assert_eq!(
+        config::load(&path).unwrap().file_associations,
+        settings.file_associations
+    );
+    std::fs::write(&path, r#"{"roots":[]}"#).unwrap();
+    assert!(config::load(&path).unwrap().file_associations.is_empty());
+}
