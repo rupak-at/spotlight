@@ -66,7 +66,7 @@ The installed package does not need Node.js, Rust, or a development server. Each
 
 ```sh
 npm run package
-install -m 0644 ./target/release/bundle/deb/Spotlight_0.2.0_amd64.deb /tmp/spotlight.deb
+install -m 0644 ./target/release/bundle/deb/Spotlight_0.3.0_amd64.deb /tmp/spotlight.deb
 sudo apt install /tmp/spotlight.deb
 rm /tmp/spotlight.deb
 spotlight
